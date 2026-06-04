@@ -20,33 +20,3 @@ public class ScoreResponseDto {
     private BigDecimal passScore;
     private LocalDateTime gradedAt;
 }
-
-@Data
-@Builder
-@AllArgsConstructor
-public class ScoreDetailDto {
-    private Long id;
-    private Long sessionId;
-    private Long paperId;
-    private String paperTitle;
-    private BigDecimal score;
-    private BigDecimal totalScore;
-    private Boolean passed;
-    private LocalDateTime gradedAt;
-    private java.util.List<AnswerDetailDto> answers;
-
-    @Data
-    @Builder
-    @AllArgsConstructor
-    public static class AnswerDetailDto {
-        private Long questionId;
-        private String questionContent;
-        private String questionType;
-        private String answerGiven;
-        private String correctAnswer;
-        private Boolean isCorrect;
-        private BigDecimal scoreEarned;
-        private BigDecimal maxScore;
-        private String explanation;
-    }
-}

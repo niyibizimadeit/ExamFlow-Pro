@@ -255,4 +255,45 @@ public class GradingService {
             case CONTAINS -> given.toLowerCase().contains(expected.toLowerCase());
         };
     }
+
+    public List<ScoreDetailDto.AnswerDetailDto> getWrongAnswers(Long sessionId) {
+        ExamSession session = sessionRepo.findById(sessionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Session", sessionId));
+        List<StudentAnswer> answers = answerRepo.findBySessionAndIsCorrectFalse(session);
+        return buildAnswerDetails(session, answers);
+    }
+
+    public List<ScoreDetailDto.AnswerDetailDto> getAllWrongAnswers(String email) {
+        List<ScoreDetailDto.AnswerDetailDto> all = new ArrayList<>();
+        List<ExamSession> sessions = sessionRepo.findAll().stream()
+                .filter(s -> s.getStudent().getEmail().equals(email) && s.getStatus() == ExamSession.SessionStatus.GRADED)
+                .toList();
+        for (ExamSession session : sessions) {
+            List<StudentAnswer> wrong = answerRepo.findBySessionAndIsCorrectFalse(session);
+            all.addAll(buildAnswerDetails(session, wrong));
+        }
+        return all;
+    }
+
+    private List<ScoreDetailDto.AnswerDetailDto> buildAnswerDetails(
+            ExamSession session, List<StudentAnswer> answers) {
+        Map<Long, BigDecimal> scoreMap = new HashMap<>();
+        for (PaperQuestion pq : paperQuestionRepo.findByPaperOrderByOrderNum(session.getPaper())) {
+            scoreMap.put(pq.getQuestion().getId(), pq.getScore());
+        }
+        return answers.stream().map(ans -> {
+            Question q = ans.getQuestion();
+            return ScoreDetailDto.AnswerDetailDto.builder()
+                    .questionId(q.getId())
+                    .questionContent(q.getContent())
+                    .questionType(q.getType().name())
+                    .answerGiven(ans.getAnswerGiven())
+                    .correctAnswer(getCorrectAnswerText(q))
+                    .isCorrect(false)
+                    .scoreEarned(ans.getScoreEarned())
+                    .maxScore(scoreMap.getOrDefault(q.getId(), BigDecimal.ZERO))
+                    .explanation(q.getExplanation())
+                    .build();
+        }).toList();
+    }
 }

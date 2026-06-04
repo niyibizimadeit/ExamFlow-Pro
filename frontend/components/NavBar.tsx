@@ -1,8 +1,7 @@
 "use client";
 
-// components/NavBar.tsx — Top navigation bar with user info and logout
-
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { clearToken } from "@/lib/auth";
 
 interface NavBarProps {
@@ -18,24 +17,25 @@ export default function NavBar({ fullName, role }: NavBarProps) {
     router.push("/login");
   }
 
-  const roleBadge =
-    role === "ADMIN"   ? "bg-red-100 text-red-700" :
-    role === "TEACHER" ? "bg-blue-100 text-blue-700" :
-                         "bg-green-100 text-green-700";
+  const roleStyle =
+    role === "ADMIN"   ? "badge badge-danger" :
+    role === "TEACHER" ? "badge badge-info" :
+                         "badge badge-success";
 
   return (
-    <nav className="bg-white shadow-sm border-b border-gray-200 px-6 py-3 flex items-center justify-between">
-      <h1 className="text-lg font-bold text-blue-600">ExamFlow Pro</h1>
+    <nav className="glass-nav sticky top-0 z-40 px-6 py-3 flex items-center justify-between">
+      <div className="flex items-center gap-6">
+        <Link href={`/${role.toLowerCase()}/dashboard`} className="text-lg font-bold text-slate-800 tracking-tight hover:text-indigo-600 transition-colors">
+          ExamFlow
+        </Link>
+        <span className={roleStyle}>{role.charAt(0) + role.slice(1).toLowerCase()}</span>
+      </div>
+
       <div className="flex items-center gap-4">
-        <span className={`text-xs font-semibold px-2 py-1 rounded-full ${roleBadge}`}>
-          {role}
-        </span>
-        <span className="text-sm text-gray-700">{fullName}</span>
-        <button
-          onClick={handleLogout}
-          className="text-sm text-gray-500 hover:text-red-600 transition"
-        >
-          Logout
+        <span className="text-sm font-medium text-slate-600">{fullName}</span>
+        <div className="w-px h-5 bg-slate-200" />
+        <button onClick={handleLogout} className="text-sm text-slate-400 hover:text-red-500 font-medium transition-colors">
+          Sign out
         </button>
       </div>
     </nav>

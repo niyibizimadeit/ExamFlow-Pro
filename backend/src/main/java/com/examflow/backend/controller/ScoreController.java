@@ -38,4 +38,16 @@ public class ScoreController {
     public ResponseEntity<ApiResponse<ScoreDetailDto>> scoreDetail(@PathVariable Long sessionId) {
         return ResponseEntity.ok(ApiResponse.ok(gradingService.getScoreDetail(sessionId)));
     }
+
+    @GetMapping("/wrong/{sessionId}")
+    public ResponseEntity<ApiResponse<List<ScoreDetailDto.AnswerDetailDto>>> wrongAnswers(
+            @PathVariable Long sessionId) {
+        return ResponseEntity.ok(ApiResponse.ok(gradingService.getWrongAnswers(sessionId)));
+    }
+
+    @GetMapping("/wrong/all")
+    public ResponseEntity<ApiResponse<List<ScoreDetailDto.AnswerDetailDto>>> allWrongAnswers(
+            Authentication auth) {
+        return ResponseEntity.ok(ApiResponse.ok(gradingService.getAllWrongAnswers(auth.getName())));
+    }
 }
