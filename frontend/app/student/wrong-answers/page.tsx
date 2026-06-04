@@ -18,7 +18,9 @@ export default function WrongAnswersPage() {
     const payload = decodeToken(token);
     if (!payload || payload.role !== "STUDENT") { clearToken(); router.push("/login"); return; }
     setUser({ fullName: payload.name, role: payload.role });
-    api.get("/api/scores/wrong/all").then(r => setWrong(r.data.data));
+    api.get("/api/scores/wrong/all")
+      .then(r => setWrong(r.data.data || []))
+      .catch(() => setWrong([]));
   }, [router]);
 
   if (!user) return null;

@@ -19,10 +19,16 @@ export default function ResultDetailPage() {
     const payload = decodeToken(token);
     if (!payload || payload.role !== "STUDENT") { clearToken(); router.push("/login"); return; }
     setUser({ fullName: payload.name, role: payload.role });
-    api.get("/api/scores/my").then(r => {
-      const score = (r.data.data || []).find((s: Record<string, unknown>) => s.id === parseInt(scoreId));
-      if (score?.sessionId) api.get(`/api/scores/detail/${score.sessionId}`).then(r2 => setDetail(r2.data.data));
-    });
+    api.get("/api/scores/my")
+      .then(r => {
+        const score = (r.data.data || []).find((s: Record<string, unknown>) => s.id === parseInt(scoreId));
+        if (score?.sessionId) {
+          api.get(`/api/scores/detail/${score.sessionId}`)
+            .then(r2 => setDetail(r2.data.data))
+            .catch(() => {});
+        }
+      })
+      .catch(() => {});
   }, [router, scoreId]);
 
   if (!user || !detail) return <div className="min-h-screen flex items-center justify-center text-slate-400">Loading...</div>;

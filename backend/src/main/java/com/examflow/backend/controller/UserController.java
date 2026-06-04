@@ -3,6 +3,8 @@ package com.examflow.backend.controller;
 import com.examflow.backend.dto.ApiResponse;
 import com.examflow.backend.dto.UpdateProfileRequest;
 import com.examflow.backend.entity.User;
+import com.examflow.backend.exception.BusinessException;
+import com.examflow.backend.exception.ResourceNotFoundException;
 import com.examflow.backend.repository.UserRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -27,7 +29,7 @@ public class UserController {
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getProfile(Authentication auth) {
         User user = userRepository.findByEmail(auth.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Map<String, Object> profile = new LinkedHashMap<>();
         profile.put("id", user.getId());
@@ -48,7 +50,7 @@ public class UserController {
             @RequestBody UpdateProfileRequest req) {
 
         User user = userRepository.findByEmail(auth.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (req.getFullName() != null) user.setFullName(req.getFullName());
         if (req.getStudentNo() != null) user.setStudentNo(req.getStudentNo());
@@ -57,7 +59,7 @@ public class UserController {
         if (req.getNewPassword() != null && !req.getNewPassword().isBlank()) {
             if (req.getCurrentPassword() == null ||
                     !passwordEncoder.matches(req.getCurrentPassword(), user.getPassword())) {
-                throw new RuntimeException("Current password is incorrect");
+                throw new BusinessException("Current password is incorrect");
             }
             user.setPassword(passwordEncoder.encode(req.getNewPassword()));
         }

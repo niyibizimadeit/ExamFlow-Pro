@@ -120,19 +120,21 @@ examflow-pro/
 │   │   ├── security/           # JWT filter, config
 │   │   └── exception/          # Global exception handler
 │   └── src/main/resources/
-│       ├── application.yml     # DB config, JWT secret
-│       └── db/                 # schema.sql, data.sql
+│       └── application.yml     # DB config, JWT secret
 ├── frontend/                   # Next.js project
 │   ├── app/
 │   │   ├── (auth)/             # Login page
-│   │   ├── admin/              # Admin dashboard
-│   │   ├── teacher/            # Teacher portal
-│   │   └── student/            # Student portal + exam
-│   ├── components/             # Reusable UI components
-│   ├── lib/                    # API client, auth hooks
+│   │   ├── admin/              # Admin dashboard & user management
+│   │   ├── teacher/            # Teacher portal (questions, papers, results)
+│   │   └── student/            # Student portal, exam, results, profile, wrong answers
+│   ├── components/             # Reusable UI components (NavBar, Toast)
+│   ├── hooks/                  # Custom React hooks (useAuth)
+│   ├── lib/                    # API client, auth helpers
 │   └── public/
-├── docs/                       # README, instructions, todo
 ├── sql/                        # schema.sql, test_data.sql
+├── Instructions.md             # System design & development guide
+├── Todo.md                     # 10-phase development checklist
+├── fixes.md                    # Known issues & fixes
 └── README.md
 ```
 

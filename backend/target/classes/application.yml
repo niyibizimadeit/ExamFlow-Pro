@@ -7,8 +7,7 @@ spring:
 
   jpa:
     hibernate:
-    ddl-auto: update    # allow Hibernate to align schema with entity mappings
-
+      ddl-auto: update    # allow Hibernate to align schema with entity mappings
     show-sql: true
     properties:
       hibernate:

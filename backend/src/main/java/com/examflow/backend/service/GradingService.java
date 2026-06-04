@@ -4,6 +4,7 @@ import com.examflow.backend.dto.*;
 import com.examflow.backend.entity.*;
 import com.examflow.backend.entity.Question.QuestionType;
 import com.examflow.backend.entity.QuestionStdAnswer.MatchMode;
+import com.examflow.backend.exception.BusinessException;
 import com.examflow.backend.exception.ResourceNotFoundException;
 import com.examflow.backend.repository.*;
 import org.springframework.stereotype.Service;
@@ -23,19 +24,22 @@ public class GradingService {
     private final ScoreRecordRepository scoreRepo;
     private final QuestionStdAnswerRepository stdAnswerRepo;
     private final ExamPaperRepository paperRepo;
+    private final UserRepository userRepo;
 
     public GradingService(ExamSessionRepository sessionRepo,
                           StudentAnswerRepository answerRepo,
                           PaperQuestionRepository paperQuestionRepo,
                           ScoreRecordRepository scoreRepo,
                           QuestionStdAnswerRepository stdAnswerRepo,
-                          ExamPaperRepository paperRepo) {
+                          ExamPaperRepository paperRepo,
+                          UserRepository userRepo) {
         this.sessionRepo = sessionRepo;
         this.answerRepo = answerRepo;
         this.paperQuestionRepo = paperQuestionRepo;
         this.scoreRepo = scoreRepo;
         this.stdAnswerRepo = stdAnswerRepo;
         this.paperRepo = paperRepo;
+        this.userRepo = userRepo;
     }
 
     @Transactional
@@ -110,23 +114,33 @@ public class GradingService {
     }
 
     public List<ScoreResponseDto> getMyScores(String email) {
-        return scoreRepo.findAll().stream()
-                .filter(s -> s.getStudent().getEmail().equals(email))
+        User student = userRepo.findByEmail(email).orElseThrow();
+        return scoreRepo.findByStudent(student).stream()
                 .map(this::toScoreDto)
                 .toList();
     }
 
-    public List<ScoreResponseDto> getPaperScores(Long paperId) {
+    public List<ScoreResponseDto> getPaperScores(Long paperId, String userEmail) {
         ExamPaper paper = paperRepo.findById(paperId)
                 .orElseThrow(() -> new ResourceNotFoundException("Paper", paperId));
+        // Verify user is the paper owner or an admin
+        User user = userRepo.findByEmail(userEmail).orElseThrow();
+        if (!paper.getCreatedBy().getEmail().equals(userEmail) && user.getRole() != User.Role.ADMIN) {
+            throw new BusinessException("Access denied");
+        }
         return scoreRepo.findByPaper(paper).stream()
                 .map(this::toScoreDto)
                 .toList();
     }
 
-    public Map<String, Object> getPaperStats(Long paperId) {
+    public Map<String, Object> getPaperStats(Long paperId, String userEmail) {
         ExamPaper paper = paperRepo.findById(paperId)
                 .orElseThrow(() -> new ResourceNotFoundException("Paper", paperId));
+        // Verify user is the paper owner or an admin
+        User user = userRepo.findByEmail(userEmail).orElseThrow();
+        if (!paper.getCreatedBy().getEmail().equals(userEmail) && user.getRole() != User.Role.ADMIN) {
+            throw new BusinessException("Access denied");
+        }
         List<ScoreRecord> records = scoreRepo.findByPaper(paper);
         if (records.isEmpty()) {
             Map<String, Object> empty = new LinkedHashMap<>();
@@ -157,9 +171,18 @@ public class GradingService {
         return result;
     }
 
-    public ScoreDetailDto getScoreDetail(Long sessionId) {
+    public ScoreDetailDto getScoreDetail(Long sessionId, String userEmail) {
         ExamSession session = sessionRepo.findById(sessionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Session", sessionId));
+
+        // Verify user is the session owner, paper owner, or admin
+        User user = userRepo.findByEmail(userEmail).orElseThrow();
+        boolean isOwner = session.getStudent().getEmail().equals(userEmail);
+        boolean isPaperOwner = session.getPaper().getCreatedBy().getEmail().equals(userEmail);
+        boolean isAdmin = user.getRole() == User.Role.ADMIN;
+        if (!isOwner && !isPaperOwner && !isAdmin) {
+            throw new BusinessException("Access denied");
+        }
 
         ScoreRecord record = scoreRepo.findBySession_Id(sessionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Score record not found"));
@@ -224,6 +247,7 @@ public class GradingService {
                 .sessionId(r.getSession().getId())
                 .paperId(r.getPaper().getId())
                 .paperTitle(r.getPaper().getTitle())
+                .studentName(r.getStudent().getFullName())
                 .totalScore(r.getScore())
                 .paperTotalScore(r.getPaper().getTotalScore())
                 .passed(r.getPassed())
@@ -256,17 +280,28 @@ public class GradingService {
         };
     }
 
-    public List<ScoreDetailDto.AnswerDetailDto> getWrongAnswers(Long sessionId) {
+    public List<ScoreDetailDto.AnswerDetailDto> getWrongAnswers(Long sessionId, String userEmail) {
         ExamSession session = sessionRepo.findById(sessionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Session", sessionId));
+
+        // Verify user is the session owner, paper owner, or admin
+        User user = userRepo.findByEmail(userEmail).orElseThrow();
+        boolean isOwner = session.getStudent().getEmail().equals(userEmail);
+        boolean isPaperOwner = session.getPaper().getCreatedBy().getEmail().equals(userEmail);
+        boolean isAdmin = user.getRole() == User.Role.ADMIN;
+        if (!isOwner && !isPaperOwner && !isAdmin) {
+            throw new BusinessException("Access denied");
+        }
+
         List<StudentAnswer> answers = answerRepo.findBySessionAndIsCorrectFalse(session);
         return buildAnswerDetails(session, answers);
     }
 
     public List<ScoreDetailDto.AnswerDetailDto> getAllWrongAnswers(String email) {
+        User student = userRepo.findByEmail(email).orElseThrow();
         List<ScoreDetailDto.AnswerDetailDto> all = new ArrayList<>();
-        List<ExamSession> sessions = sessionRepo.findAll().stream()
-                .filter(s -> s.getStudent().getEmail().equals(email) && s.getStatus() == ExamSession.SessionStatus.GRADED)
+        List<ExamSession> sessions = sessionRepo.findByStudent(student).stream()
+                .filter(s -> s.getStatus() == ExamSession.SessionStatus.GRADED)
                 .toList();
         for (ExamSession session : sessions) {
             List<StudentAnswer> wrong = answerRepo.findBySessionAndIsCorrectFalse(session);

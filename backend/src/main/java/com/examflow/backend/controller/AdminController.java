@@ -2,6 +2,7 @@ package com.examflow.backend.controller;
 
 import com.examflow.backend.dto.ApiResponse;
 import com.examflow.backend.entity.ScoreRecord;
+import com.examflow.backend.entity.User;
 import com.examflow.backend.repository.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,8 +30,8 @@ public class AdminController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> stats() {
         Map<String, Object> stats = new LinkedHashMap<>();
         stats.put("totalUsers", userRepo.count());
-        stats.put("totalTeachers", userRepo.findAll().stream().filter(u -> u.getRole().name().equals("TEACHER")).count());
-        stats.put("totalStudents", userRepo.findAll().stream().filter(u -> u.getRole().name().equals("STUDENT")).count());
+        stats.put("totalTeachers", userRepo.countByRole(User.Role.TEACHER));
+        stats.put("totalStudents", userRepo.countByRole(User.Role.STUDENT));
         stats.put("totalPapers", paperRepo.count());
         stats.put("totalSessions", sessionRepo.count());
         stats.put("totalGraded", scoreRepo.count());

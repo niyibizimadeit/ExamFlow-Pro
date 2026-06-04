@@ -110,9 +110,13 @@ public class PaperService {
 
     // ---- Update metadata ----
     @Transactional
-    public PaperResponseDto updatePaper(Long id, PaperCreateDto dto) {
+    public PaperResponseDto updatePaper(Long id, PaperCreateDto dto, String userEmail) {
         ExamPaper paper = paperRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Paper", id));
+
+        if (!paper.getCreatedBy().getEmail().equals(userEmail)) {
+            throw new BusinessException("You can only modify your own papers");
+        }
 
         if (paper.getStatus() != PaperStatus.DRAFT) {
             throw new BusinessException("Can only edit DRAFT papers");
@@ -138,9 +142,13 @@ public class PaperService {
 
     // ---- Add questions ----
     @Transactional
-    public PaperResponseDto addQuestions(Long paperId, AddQuestionsDto dto) {
+    public PaperResponseDto addQuestions(Long paperId, AddQuestionsDto dto, String userEmail) {
         ExamPaper paper = paperRepo.findById(paperId)
                 .orElseThrow(() -> new ResourceNotFoundException("Paper", paperId));
+
+        if (!paper.getCreatedBy().getEmail().equals(userEmail)) {
+            throw new BusinessException("You can only modify your own papers");
+        }
 
         if (paper.getStatus() != PaperStatus.DRAFT) {
             throw new BusinessException("Can only modify DRAFT papers");
@@ -167,11 +175,15 @@ public class PaperService {
 
     // ---- Remove question ----
     @Transactional
-    public void removeQuestion(Long paperId, Long questionId) {
+    public void removeQuestion(Long paperId, Long questionId, String userEmail) {
         ExamPaper paper = paperRepo.findById(paperId)
                 .orElseThrow(() -> new ResourceNotFoundException("Paper", paperId));
         Question q = questionRepo.findById(questionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Question", questionId));
+
+        if (!paper.getCreatedBy().getEmail().equals(userEmail)) {
+            throw new BusinessException("You can only modify your own papers");
+        }
 
         if (paper.getStatus() != PaperStatus.DRAFT) {
             throw new BusinessException("Can only modify DRAFT papers");
@@ -181,11 +193,44 @@ public class PaperService {
                 .ifPresent(paperQuestionRepo::delete);
     }
 
-    // ---- Assembly ----
+    // ---- Save Assembly Rules ----
     @Transactional
-    public PaperResponseDto assemble(Long paperId) {
+    public PaperResponseDto saveAssemblyRules(Long paperId, List<AssemblyRuleDto> rules, String userEmail) {
         ExamPaper paper = paperRepo.findById(paperId)
                 .orElseThrow(() -> new ResourceNotFoundException("Paper", paperId));
+
+        if (!paper.getCreatedBy().getEmail().equals(userEmail)) {
+            throw new BusinessException("You can only modify your own papers");
+        }
+        if (paper.getStatus() != PaperStatus.DRAFT) {
+            throw new BusinessException("Can only modify DRAFT papers");
+        }
+
+        assemblyRuleRepo.deleteByPaper(paper);
+        for (var r : rules) {
+            AssemblyRule rule = new AssemblyRule();
+            rule.setPaper(paper);
+            rule.setQuestionType(QuestionType.valueOf(r.getQuestionType().toUpperCase()));
+            rule.setDifficulty(r.getDifficulty());
+            rule.setCount(r.getCount());
+            rule.setScoreEach(r.getScoreEach());
+            if (r.getCategoryId() != null) {
+                rule.setCategory(categoryRepo.findById(r.getCategoryId()).orElse(null));
+            }
+            assemblyRuleRepo.save(rule);
+        }
+        return toDto(paper);
+    }
+
+    // ---- Assembly ----
+    @Transactional
+    public PaperResponseDto assemble(Long paperId, String userEmail) {
+        ExamPaper paper = paperRepo.findById(paperId)
+                .orElseThrow(() -> new ResourceNotFoundException("Paper", paperId));
+
+        if (!paper.getCreatedBy().getEmail().equals(userEmail)) {
+            throw new BusinessException("You can only modify your own papers");
+        }
 
         if (paper.getStatus() != PaperStatus.DRAFT) {
             throw new BusinessException("Can only assemble DRAFT papers");
@@ -238,9 +283,13 @@ public class PaperService {
 
     // ---- Publish ----
     @Transactional
-    public PaperResponseDto publish(Long paperId) {
+    public PaperResponseDto publish(Long paperId, String userEmail) {
         ExamPaper paper = paperRepo.findById(paperId)
                 .orElseThrow(() -> new ResourceNotFoundException("Paper", paperId));
+
+        if (!paper.getCreatedBy().getEmail().equals(userEmail)) {
+            throw new BusinessException("You can only publish your own papers");
+        }
 
         List<PaperQuestion> questions = paperQuestionRepo.findByPaperOrderByOrderNum(paper);
         if (questions.isEmpty()) {
@@ -254,10 +303,14 @@ public class PaperService {
 
     // ---- Delete ----
     @Transactional
-    public void deletePaper(Long paperId) {
-        if (!paperRepo.existsById(paperId)) {
-            throw new ResourceNotFoundException("Paper", paperId);
+    public void deletePaper(Long paperId, String userEmail) {
+        ExamPaper paper = paperRepo.findById(paperId)
+                .orElseThrow(() -> new ResourceNotFoundException("Paper", paperId));
+
+        if (!paper.getCreatedBy().getEmail().equals(userEmail)) {
+            throw new BusinessException("You can only delete your own papers");
         }
+
         paperRepo.deleteById(paperId);
     }
 

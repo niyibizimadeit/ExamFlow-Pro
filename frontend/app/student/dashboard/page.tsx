@@ -11,7 +11,7 @@ export default function StudentDashboard() {
   const router = useRouter();
   const [user, setUser] = useState<{ fullName: string; role: string } | null>(null);
   const [papers, setPapers] = useState<{ id: number; title: string; durationMins: number; totalScore: number; status: string; questionCount: number }[]>([]);
-  const [scores, setScores] = useState<{ id: number; sessionId: number; paperTitle: string; totalScore: number; paperTotalScore: number; passed: boolean }[]>([]);
+  const [scores, setScores] = useState<{ id: number; sessionId: number; paperId: number; paperTitle: string; totalScore: number; paperTotalScore: number; passed: boolean }[]>([]);
 
   useEffect(() => {
     const token = getToken();
@@ -19,14 +19,18 @@ export default function StudentDashboard() {
     const payload = decodeToken(token);
     if (!payload || payload.role !== "STUDENT") { clearToken(); router.push("/login"); return; }
     setUser({ fullName: payload.name, role: payload.role });
-    api.get("/api/papers").then(r => setPapers(r.data.data.filter((p: { status: string }) => p.status === "PUBLISHED")));
-    api.get("/api/scores/my").then(r => setScores(r.data.data));
+    api.get("/api/papers")
+      .then(r => setPapers((r.data.data || []).filter((p: { status: string }) => p.status === "PUBLISHED")))
+      .catch(() => setPapers([]));
+    api.get("/api/scores/my")
+      .then(r => setScores(r.data.data || []))
+      .catch(() => setScores([]));
   }, [router]);
 
   if (!user) return null;
 
-  const takenIds = new Set(scores.map(s => s.paperTitle));
-  const available = papers.filter(p => !takenIds.has(p.title));
+  const takenIds = new Set(scores.map(s => s.paperId));
+  const available = papers.filter(p => !takenIds.has(p.id));
 
   return (
     <>

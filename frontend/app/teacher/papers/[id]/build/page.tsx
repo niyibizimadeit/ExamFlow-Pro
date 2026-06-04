@@ -52,7 +52,7 @@ export default function PaperBuildPage() {
     try { await api.delete(`/api/papers/${id}/questions/${qId}`); setToast("Removed"); fetchPaper(); } catch { setToast("Failed"); }
   }
   async function assemble() {
-    try { await api.put(`/api/papers/${id}`, { assemblyRules: rules }); await api.post(`/api/papers/${id}/assemble`); setToast("Assembly complete"); fetchPaper(); }
+    try { await api.put(`/api/papers/${id}/rules`, rules); await api.post(`/api/papers/${id}/assemble`); setToast("Assembly complete"); fetchPaper(); }
     catch (err: unknown) { setToast((err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed"); }
   }
   async function publish() {

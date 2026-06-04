@@ -3,6 +3,7 @@ package com.examflow.backend.controller;
 import com.examflow.backend.dto.*;
 import com.examflow.backend.entity.User;
 import com.examflow.backend.entity.User.Role;
+import com.examflow.backend.exception.BusinessException;
 import com.examflow.backend.repository.UserRepository;
 import com.examflow.backend.security.JwtUtils;
 import jakarta.validation.Valid;
@@ -37,6 +38,11 @@ public class AuthController {
                     .body(ApiResponse.error("Invalid email or password"));
         }
 
+        if (!user.getEnabled()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ApiResponse.error("Account is disabled"));
+        }
+
         String token = jwtUtils.generateToken(user.getEmail(), user.getRole().name(), user.getFullName());
 
         AuthResponse resp = new AuthResponse(token, user.getRole().name(), user.getFullName(), user.getEmail());
@@ -46,10 +52,10 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody RegisterRequest req) {
         if (userRepository.existsByEmail(req.getEmail())) {
-            throw new RuntimeException("Email already registered");
+            throw new BusinessException("Email already registered");
         }
         if (userRepository.existsByUsername(req.getUsername())) {
-            throw new RuntimeException("Username already taken");
+            throw new BusinessException("Username already taken");
         }
 
         User user = new User();

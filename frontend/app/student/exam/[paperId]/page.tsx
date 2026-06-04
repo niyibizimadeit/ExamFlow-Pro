@@ -21,23 +21,28 @@ export default function ExamPage() {
     if (!token) { router.push("/login"); return; }
     const p = decodeToken(token);
     if (!p || p.role !== "STUDENT") { clearToken(); router.push("/login"); return; }
-    api.get("/api/scores/my").then(r => {
-      if ((r.data.data || []).find((s: Record<string, unknown>) => s.paperId === parseInt(paperId))) {
-        alert("Exam already completed."); router.push("/student/dashboard"); return;
-      }
-      api.post(`/api/sessions/start/${paperId}`).then(r2 => {
-        const s = r2.data.data; setSession(s);
-        const a: Record<number, string> = {};
-        s.questions.forEach((q: { id: number; savedAnswer: string }) => { if (q.savedAnswer) a[q.id] = q.savedAnswer; });
-        setAnswers(a);
-        setTimeLeft(Math.max(0, Math.floor((new Date(s.startTime).getTime() + s.durationMins * 60000 - Date.now()) / 1000)));
-      }).catch((err: unknown) => { alert((err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Error"); router.push("/student/dashboard"); });
-    });
+    api.get("/api/scores/my")
+      .then(r => {
+        if ((r.data.data || []).find((s: Record<string, unknown>) => s.paperId === parseInt(paperId))) {
+          alert("Exam already completed."); router.push("/student/dashboard"); return;
+        }
+        api.post(`/api/sessions/start/${paperId}`).then(r2 => {
+          const s = r2.data.data; setSession(s);
+          const a: Record<number, string> = {};
+          s.questions.forEach((q: { id: number; savedAnswer: string }) => { if (q.savedAnswer) a[q.id] = q.savedAnswer; });
+          setAnswers(a);
+          setTimeLeft(Math.max(0, Math.floor((new Date(s.startTime).getTime() + s.durationMins * 60000 - Date.now()) / 1000)));
+        }).catch((err: unknown) => { alert((err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Error"); router.push("/student/dashboard"); });
+      })
+      .catch(() => { alert("Failed to load exam. Please try again."); router.push("/student/dashboard"); });
   }, []);
 
-  useEffect(() => { if (timeLeft <= 0) return; const t = setInterval(() => setTimeLeft(p => p <= 1 ? 0 : p - 1), 1000); return () => clearInterval(t); }, [timeLeft > 0]);
-  useEffect(() => { if (timeLeft === 0 && session?.status === "IN_PROGRESS") submit(); }, [timeLeft]);
-  useEffect(() => { if (!session) return; const t = setInterval(() => { if (Object.keys(ref.current).length && session.status === "IN_PROGRESS") api.put(`/api/sessions/${session.id}/answers`, { answers: ref.current }).catch(() => {}); }, 30000); return () => clearInterval(t); }, [session]);
+  const sessionRef = useRef(session);
+  sessionRef.current = session;
+
+  useEffect(() => { if (timeLeft <= 0) return; const t = setInterval(() => setTimeLeft(p => Math.max(0, p - 1)), 1000); return () => clearInterval(t); }, [timeLeft]);
+  useEffect(() => { if (timeLeft === 0 && sessionRef.current?.status === "IN_PROGRESS") submit(); }, [timeLeft]);
+  useEffect(() => { if (!session) return; const t = setInterval(() => { if (Object.keys(ref.current).length && sessionRef.current?.status === "IN_PROGRESS") api.put(`/api/sessions/${sessionRef.current.id}/answers`, { answers: ref.current }).catch(() => {}); }, 30000); return () => clearInterval(t); }, [session]);
 
   async function submit() {
     if (submitting) return; setSubmitting(true);
@@ -52,7 +57,7 @@ export default function ExamPage() {
   if (session.status !== "IN_PROGRESS") return <div className="min-h-screen flex items-center justify-center"><div className="bg-white rounded-2xl shadow-sm border p-10 text-slate-500">Exam no longer in progress.</div></div>;
 
   const q = session.questions[idx];
-  const m = Math.floor(timeLeft / 60), s = timeLeft % 60;
+  const m = isNaN(timeLeft) ? 0 : Math.floor(timeLeft / 60), s = isNaN(timeLeft) ? 0 : timeLeft % 60;
   const answered = Object.values(answers).filter(v => v?.length).length;
 
   return (

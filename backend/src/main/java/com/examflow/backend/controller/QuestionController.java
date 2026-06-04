@@ -51,7 +51,7 @@ public class QuestionController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<QuestionResponseDto>> update(
-            @PathVariable Long id, @RequestBody QuestionUpdateDto dto, Authentication auth) {
+            @PathVariable Long id, @Valid @RequestBody QuestionUpdateDto dto, Authentication auth) {
         return ResponseEntity.ok(ApiResponse.ok("Question updated",
                 questionService.update(id, dto, auth.getName())));
     }

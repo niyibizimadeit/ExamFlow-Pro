@@ -3,6 +3,7 @@ package com.examflow.backend.config;
 import com.examflow.backend.security.JwtAuthFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -36,7 +37,18 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                .requestMatchers("/api/teacher/**", "/api/questions/**", "/api/categories/**", "/api/papers/**").hasAnyRole("TEACHER", "ADMIN")
+                .requestMatchers("/api/teacher/**").hasAnyRole("TEACHER", "ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/questions/**", "/api/categories/**").hasAnyRole("TEACHER", "ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/questions/**").hasAnyRole("TEACHER", "ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/questions/**").hasAnyRole("TEACHER", "ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/questions/**").hasAnyRole("TEACHER", "ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/categories/**").hasAnyRole("TEACHER", "ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/categories/**").hasAnyRole("TEACHER", "ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/categories/**").hasAnyRole("TEACHER", "ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/papers/**").hasAnyRole("STUDENT", "TEACHER", "ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/papers/**").hasAnyRole("TEACHER", "ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/papers/**").hasAnyRole("TEACHER", "ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/papers/**").hasAnyRole("TEACHER", "ADMIN")
                 .requestMatchers("/api/sessions/**", "/api/scores/**").hasAnyRole("STUDENT", "TEACHER", "ADMIN")
                 .anyRequest().authenticated()
             )

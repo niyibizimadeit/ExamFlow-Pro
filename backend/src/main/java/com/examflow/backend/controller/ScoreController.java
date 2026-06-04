@@ -25,24 +25,27 @@ public class ScoreController {
     }
 
     @GetMapping("/paper/{paperId}")
-    public ResponseEntity<ApiResponse<List<ScoreResponseDto>>> paperScores(@PathVariable Long paperId) {
-        return ResponseEntity.ok(ApiResponse.ok(gradingService.getPaperScores(paperId)));
+    public ResponseEntity<ApiResponse<List<ScoreResponseDto>>> paperScores(
+            @PathVariable Long paperId, Authentication auth) {
+        return ResponseEntity.ok(ApiResponse.ok(gradingService.getPaperScores(paperId, auth.getName())));
     }
 
     @GetMapping("/stats/{paperId}")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> paperStats(@PathVariable Long paperId) {
-        return ResponseEntity.ok(ApiResponse.ok(gradingService.getPaperStats(paperId)));
+    public ResponseEntity<ApiResponse<Map<String, Object>>> paperStats(
+            @PathVariable Long paperId, Authentication auth) {
+        return ResponseEntity.ok(ApiResponse.ok(gradingService.getPaperStats(paperId, auth.getName())));
     }
 
     @GetMapping("/detail/{sessionId}")
-    public ResponseEntity<ApiResponse<ScoreDetailDto>> scoreDetail(@PathVariable Long sessionId) {
-        return ResponseEntity.ok(ApiResponse.ok(gradingService.getScoreDetail(sessionId)));
+    public ResponseEntity<ApiResponse<ScoreDetailDto>> scoreDetail(
+            @PathVariable Long sessionId, Authentication auth) {
+        return ResponseEntity.ok(ApiResponse.ok(gradingService.getScoreDetail(sessionId, auth.getName())));
     }
 
     @GetMapping("/wrong/{sessionId}")
     public ResponseEntity<ApiResponse<List<ScoreDetailDto.AnswerDetailDto>>> wrongAnswers(
-            @PathVariable Long sessionId) {
-        return ResponseEntity.ok(ApiResponse.ok(gradingService.getWrongAnswers(sessionId)));
+            @PathVariable Long sessionId, Authentication auth) {
+        return ResponseEntity.ok(ApiResponse.ok(gradingService.getWrongAnswers(sessionId, auth.getName())));
     }
 
     @GetMapping("/wrong/all")

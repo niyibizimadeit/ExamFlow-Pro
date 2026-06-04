@@ -2,6 +2,9 @@
 
 > Generated from analysis of the entire repository (frontend, backend, SQL, docs).
 > Issues are ordered by severity: 🔴 Critical → 🟠 High → 🟡 Medium → 🟢 Low → 💡 UX/Polish.
+>
+> **Status:** All issues below have been fixed except where noted as "Not Fixed (low priority / large refactor)."
+> Frontend TypeScript compiles with zero errors. Backend Java compiles successfully.
 
 ---
 
@@ -687,6 +690,52 @@ The actual fix is to ensure the user knows their root password. The commands are
 | 📋 Docs | 3 | README, TODO, missing files |
 
 **Total issues found: 46**
+
+---
+
+## ✅ FIXES APPLIED
+
+All 6 critical, 6 high, 8 medium, and most low/UX issues have been fixed. Below is a summary of every change made:
+
+### Backend Changes
+| File | Change |
+|------|--------|
+| `application.yml` | Fixed YAML indentation for `ddl-auto: update` under `hibernate:` |
+| `SecurityConfig.java` | Students can now access `GET /api/papers/**`; split by HTTP method; added `HttpMethod` import |
+| `AuthController.java` | `RuntimeException` → `BusinessException`; added login `enabled` check |
+| `UserController.java` | `RuntimeException` → `BusinessException`/`ResourceNotFoundException` |
+| `PaperController.java` | Robust role detection using `GrantedAuthority::getAuthority`; all mutations require `Authentication`; added `@Valid` on PUT; added `PUT /{id}/rules` endpoint |
+| `PaperService.java` | Ownership checks on `updatePaper`, `addQuestions`, `removeQuestion`, `assemble`, `publish`, `deletePaper`, `saveAssemblyRules`; added `saveAssemblyRules` method |
+| `ScoreController.java` | All endpoints now require `Authentication auth` parameter |
+| `GradingService.java` | `getMyScores` uses `scoreRepo.findByStudent()`; `getAllWrongAnswers` uses `sessionRepo.findByStudent()`; `getPaperScores`/`getPaperStats`/`getScoreDetail`/`getWrongAnswers` verify authorization; added `UserRepository` dependency; `toScoreDto` includes `studentName` |
+| `SessionService.java` | Fixed N+1 query — `findBySession` called once before loop instead of inside |
+| `AdminController.java` | Uses `userRepo.countByRole()` instead of streaming all users; added `User` import |
+| `UserRepository.java` | Added `countByRole(User.Role role)` method |
+| `QuestionController.java` | Added `@Valid` on PUT endpoint |
+| `GlobalExceptionHandler.java` | Generic `Exception` handler logs internally, returns generic message (no info leak); added SLF4J logger |
+| `ScoreResponseDto.java` | Added `studentName` field |
+| `pom.xml` | Updated Lombok to 1.18.38 for Java 24 compatibility |
+
+### Frontend Changes
+| File | Change |
+|------|--------|
+| `globals.css` | Added missing component classes: `page-heading`, `glass`, `input-glass`, `select-glass`, `btn-primary` |
+| `student/dashboard/page.tsx` | Fixed "taken exam" detection: uses `paperId` instead of `paperTitle`; added `paperId` to type |
+| `student/exam/[paperId]/page.tsx` | Timer uses `Math.max(0, p-1)`; added `sessionRef` to fix stale closure; NaN guard on time display; auto-save uses `sessionRef` |
+| `teacher/questions/[id]/edit/page.tsx` | Added "Add Option" button; added "Remove" button for options; added "Add Answer" button; added category placeholder; added "Remove" for std answers |
+| `teacher/papers/[id]/build/page.tsx` | Assembly uses `PUT /api/papers/{id}/rules` instead of broken `PUT /api/papers/{id}` |
+| `teacher/papers/[id]/results/page.tsx` | Shows actual student names instead of "Student #N" |
+| `components/NavBar.tsx` | Added role-specific navigation links (Dashboard, Users/Questions/Papers/Wrong Answers/Profile) |
+| `lib/auth.ts` | Added `default: return "/login"` to `getRedirectPath` switch |
+| `app/not-found.tsx` | **Created** — styled 404 page with back-to-home link |
+| `app/student/profile/page.tsx` | **Created** — profile edit page with name, student info, and password change |
+| `globals.css` | Moved body styles into `@layer base`; added `@layer components` with all component classes |
+
+### Documentation Changes
+| File | Change |
+|------|--------|
+| `Readme.md` | Fixed project structure tree to match actual files (removed non-existent `db/` dir, added new pages) |
+| `fixes.md` | Added this status section |
 
 ---
 

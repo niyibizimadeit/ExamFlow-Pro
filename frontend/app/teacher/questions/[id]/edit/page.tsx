@@ -100,6 +100,7 @@ export default function EditQuestionPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
               <select value={categoryId} onChange={e => setCategoryId(e.target.value)} className="border rounded-lg px-3 py-2 text-sm w-full">
+                <option value="">Select category</option>
                 {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
@@ -126,7 +127,10 @@ export default function EditQuestionPage() {
           </div>
           {["SINGLE", "MULTIPLE", "TRUEFALSE"].includes(type) && (
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Options</label>
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-gray-700">Options</label>
+                {type !== "TRUEFALSE" && <button type="button" onClick={() => setOptions([...options, { label: String.fromCharCode(65 + options.length), content: "", isCorrect: false }])} className="text-xs font-medium text-indigo-500 hover:text-indigo-600">Add Option</button>}
+              </div>
               {options.map((opt, i) => (
                 <div key={i} className="flex items-center gap-3">
                   <span className="text-sm font-bold text-gray-400 w-6">{opt.label}</span>
@@ -139,13 +143,17 @@ export default function EditQuestionPage() {
                       setOptions(o);
                     }} /> Correct
                   </label>
+                  {options.length > 2 && <button type="button" onClick={() => { setOptions(options.filter((_, j) => j !== i).map((o, j) => ({ ...o, label: String.fromCharCode(65 + j) }))); }} className="text-gray-400 hover:text-red-500 text-xs">Remove</button>}
                 </div>
               ))}
             </div>
           )}
           {type === "FILL" && (
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Standard Answers</label>
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-gray-700">Standard Answers</label>
+                <button type="button" onClick={() => setStdAnswers([...stdAnswers, { answerText: "", matchMode: "CASE_INSENSITIVE" }])} className="text-xs font-medium text-indigo-500 hover:text-indigo-600">Add Answer</button>
+              </div>
               {stdAnswers.map((ans, i) => (
                 <div key={i} className="flex items-center gap-3">
                   <input value={ans.answerText} onChange={e => { const a = [...stdAnswers]; a[i].answerText = e.target.value; setStdAnswers(a); }} className="border rounded-lg px-3 py-2 text-sm flex-1" />
@@ -154,6 +162,7 @@ export default function EditQuestionPage() {
                     <option value="EXACT">Exact Match</option>
                     <option value="CONTAINS">Contains</option>
                   </select>
+                  {stdAnswers.length > 1 && <button type="button" onClick={() => setStdAnswers(stdAnswers.filter((_, j) => j !== i))} className="text-gray-400 hover:text-red-500 text-xs">Remove</button>}
                 </div>
               ))}
             </div>

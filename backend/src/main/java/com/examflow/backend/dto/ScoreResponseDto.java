@@ -14,6 +14,7 @@ public class ScoreResponseDto {
     private Long sessionId;
     private Long paperId;
     private String paperTitle;
+    private String studentName;
     private BigDecimal totalScore;
     private BigDecimal paperTotalScore;
     private Boolean passed;

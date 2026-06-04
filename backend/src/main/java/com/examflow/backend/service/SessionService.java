@@ -95,14 +95,16 @@ public class SessionService {
         }
 
         if (dto.getAnswers() != null) {
+            // Fetch all existing answers once (not inside the loop)
+            List<StudentAnswer> existing = answerRepo.findBySession(session);
             for (var entry : dto.getAnswers().entrySet()) {
-                Question question = questionRepo.findById(entry.getKey())
-                        .orElseThrow(() -> new ResourceNotFoundException("Question", entry.getKey()));
+                Long questionId = entry.getKey();
+                Question question = questionRepo.findById(questionId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Question", questionId));
 
-                // Upsert answer
-                List<StudentAnswer> existing = answerRepo.findBySession(session);
+                // Upsert answer — find in pre-fetched list
                 StudentAnswer ans = existing.stream()
-                        .filter(a -> a.getQuestion().getId().equals(entry.getKey()))
+                        .filter(a -> a.getQuestion().getId().equals(questionId))
                         .findFirst()
                         .orElse(null);
 

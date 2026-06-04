@@ -88,7 +88,7 @@ export default function PaperResultsPage() {
             <tbody>
               {scores.map((s, i) => (
                 <tr key={i} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                  <td className="px-5 py-3.5 text-sm font-medium text-slate-800">Student #{i + 1}</td>
+                  <td className="px-5 py-3.5 text-sm font-medium text-slate-800">{String(s.studentName || `Student #${i + 1}`)}</td>
                   <td className="px-5 py-3.5 text-sm text-slate-600">{String(s.totalScore)} / {String(s.paperTotalScore)}</td>
                   <td className="px-5 py-3.5">
                     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${s.passed ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-red-50 text-red-700 border-red-200"}`}>
