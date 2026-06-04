@@ -1,0 +1,28 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/examflow?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+    ddl-auto: update    # allow Hibernate to align schema with entity mappings
+
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: true
+
+  sql:
+    init:
+      mode: never           # we run schema.sql manually
+
+server:
+  port: 8080
+
+examflow:
+  jwt:
+    secret: "examflow-super-secret-key-change-in-production-min-256-bits"
+    expiration-ms: 86400000   # 24 hours
