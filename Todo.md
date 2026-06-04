@@ -10,9 +10,9 @@
 |---|---|---|---|---|
 | 1 | Environment & DB Setup | Day 1 (AM) | MySQL DB created, Spring Boot runs, Next.js runs | ✅ |
 | 2 | Authentication System | Day 1 PM – Day 2 AM | JWT login works for all 3 roles | ✅ |
-| 3 | Question Bank — Backend | Day 2 PM – Day 3 AM | Full CRUD APIs for questions + categories | ☐ |
-| 4 | Question Bank — Frontend | Day 3 PM – Day 4 AM | Teacher can manage questions in the browser | ☐ |
-| 5 | Exam Paper Management | Day 4 PM – Day 5 AM | Manual + rule-based paper creation works | ☐ |
+| 3 | Question Bank — Backend | Day 2 PM – Day 3 AM | Full CRUD APIs for questions + categories | ✅ |
+| 4 | Question Bank — Frontend | Day 3 PM – Day 4 AM | Teacher can manage questions in the browser | ✅ |
+| 5 | Exam Paper Management | Day 4 PM – Day 5 AM | Manual + rule-based paper creation works | ✅ |
 | 6 | Online Exam Session | Day 5 PM – Day 6 AM | Student can start exam, countdown runs, auto-saves | ☐ |
 | 7 | Auto-Grading Engine | Day 6 PM – Day 7 AM | All question types graded, score record created | ☐ |
 | 8 | Score Analysis & Charts | Day 7 PM – Day 8 AM | Teacher sees class stats with charts | ☐ |
@@ -90,25 +90,25 @@
 > 🎯 REST APIs for creating, reading, updating, and deleting all question types and categories
 
 ### Backend
-- [ ] Create `CategoryController`: `GET /api/categories`, `POST`, `PUT`, `DELETE`
-- [ ] Create `QuestionController`: `GET /api/questions` (paginated, filterable), `POST`, `GET/{id}`, `PUT/{id}`, `DELETE/{id}`
-- [ ] Implement question filter: `?type=SINGLE&categoryId=1&difficulty=2&keyword=java`
-- [ ] Handle question type variants: `SINGLE/MULTIPLE/TRUEFALSE` save options, `FILL` saves std answers
-- [ ] Create `QuestionService` with `createQuestion(dto)`, `updateQuestion(id, dto)`, `deleteQuestion(id)`
-- [ ] On delete: check if question is used in any `paper_questions` — if so, throw error
-- [ ] Use DTOs: `QuestionCreateDto`, `QuestionUpdateDto`, `QuestionResponseDto` (with options/answers embedded)
-- [ ] Validate: question must have ≥2 options for `SINGLE/MULTIPLE/TRUEFALSE`
-- [ ] Create `CategoryService` with full CRUD
-- [ ] Return paginated `Page<QuestionResponseDto>` for list endpoint
+- [x] Create `CategoryController`: `GET /api/categories`, `POST`, `PUT`, `DELETE`
+- [x] Create `QuestionController`: `GET /api/questions` (paginated, filterable), `POST`, `GET/{id}`, `PUT/{id}`, `DELETE/{id}`
+- [x] Implement question filter: `?type=SINGLE&categoryId=1&difficulty=2&keyword=java`
+- [x] Handle question type variants: `SINGLE/MULTIPLE/TRUEFALSE` save options, `FILL` saves std answers
+- [x] Create `QuestionService` with `createQuestion(dto)`, `updateQuestion(id, dto)`, `deleteQuestion(id)`
+- [x] On delete: check if question is used in any `paper_questions` — if so, throw error
+- [x] Use DTOs: `QuestionCreateDto`, `QuestionUpdateDto`, `QuestionResponseDto` (with options/answers embedded)
+- [x] Validate: question must have ≥2 options for `SINGLE/MULTIPLE/TRUEFALSE`
+- [x] Create `CategoryService` with full CRUD
+- [x] Return paginated `Page<QuestionResponseDto>` for list endpoint
 
 ### Frontend
-- [ ] No frontend work this phase — focus purely on API. Use Postman or curl to test all endpoints.
+- [x] No frontend work this phase — focus purely on API. Use Postman or curl to test all endpoints.
 
 ### Database
-- [ ] Seed 5 categories and 30+ questions (mix of all 4 types) into `test_data.sql`
-- [ ] Ensure at least 10 SINGLE, 5 MULTIPLE, 5 TRUEFALSE, 5 FILL questions for assembly testing
-- [ ] Mark correct options in `question_options` with `is_correct=1`
-- [ ] Add std answers in `question_std_answers` for all FILL questions
+- [x] Seed 5 categories and 30+ questions (mix of all 4 types) into `test_data.sql`
+- [x] Ensure at least 10 SINGLE, 5 MULTIPLE, 5 TRUEFALSE, 5 FILL questions for assembly testing
+- [x] Mark correct options in `question_options` with `is_correct=1`
+- [x] Add std answers in `question_std_answers` for all FILL questions
 
 **✅ Phase Done When:** All 7 question/category API endpoints return correct data, filters work, validation returns proper error messages.
 
