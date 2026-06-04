@@ -4,12 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { clearToken } from "@/lib/auth";
 
-interface NavBarProps {
-  fullName: string;
-  role: string;
-}
-
-export default function NavBar({ fullName, role }: NavBarProps) {
+export default function NavBar({ fullName, role }: { fullName: string; role: string }) {
   const router = useRouter();
 
   function handleLogout() {
@@ -17,20 +12,22 @@ export default function NavBar({ fullName, role }: NavBarProps) {
     router.push("/login");
   }
 
-  const roleStyle =
-    role === "ADMIN"   ? "badge badge-danger" :
-    role === "TEACHER" ? "badge badge-info" :
-                         "badge badge-success";
+  const roleColors: Record<string, string> = {
+    ADMIN: "bg-red-50 text-red-700 border-red-200",
+    TEACHER: "bg-indigo-50 text-indigo-700 border-indigo-200",
+    STUDENT: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  };
 
   return (
-    <nav className="glass-nav sticky top-0 z-40 px-6 py-3 flex items-center justify-between">
-      <div className="flex items-center gap-6">
+    <nav className="sticky top-0 z-40 bg-white/80 backdrop-blur-lg border-b border-slate-200/60 px-6 py-3 flex items-center justify-between">
+      <div className="flex items-center gap-5">
         <Link href={`/${role.toLowerCase()}/dashboard`} className="text-lg font-bold text-slate-800 tracking-tight hover:text-indigo-600 transition-colors">
           ExamFlow
         </Link>
-        <span className={roleStyle}>{role.charAt(0) + role.slice(1).toLowerCase()}</span>
+        <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${roleColors[role] || "bg-slate-50 text-slate-600 border-slate-200"}`}>
+          {role.charAt(0) + role.slice(1).toLowerCase()}
+        </span>
       </div>
-
       <div className="flex items-center gap-4">
         <span className="text-sm font-medium text-slate-600">{fullName}</span>
         <div className="w-px h-5 bg-slate-200" />

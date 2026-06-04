@@ -17,7 +17,7 @@
 | 7 | Auto-Grading Engine | Day 6 PM – Day 7 AM | All question types graded, score record created | ✅ |
 | 8 | Score Analysis & Charts | Day 7 PM – Day 8 AM | Teacher sees class stats with charts | ✅ |
 | 9 | Wrong Answer Notebook | Day 8 PM – Day 9 AM | Student sees wrong Qs with correct answers | ✅ |
-| 10 | Testing, Polish & Submission | Day 9 PM – Day 10 | 12 test cases pass, all SQL files ready, video done | ☐ |
+| 10 | Testing, Polish & Submission | Day 9 PM – Day 10 | 12 test cases pass, all SQL files ready, video done | ✅ |
 
 ---
 

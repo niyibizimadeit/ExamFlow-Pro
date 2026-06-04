@@ -5,230 +5,148 @@ import { useRouter, useParams } from "next/navigation";
 import { getToken, decodeToken, clearToken } from "@/lib/auth";
 import api from "@/lib/api";
 import NavBar from "@/components/NavBar";
-import Toast from "@/components/Toast";
-
-interface Question { id: number; content: string; type: string; difficulty: number; categoryName: string; }
-interface PaperQ { id: number; questionId: number; questionContent: string; questionType: string; difficulty: number; orderNum: number; score: number; }
-interface Paper { id: number; title: string; status: string; totalScore: number; questionCount: number; questions?: PaperQ[]; }
-interface AssemblyRule { questionType: string; categoryId?: number; difficulty?: number; count: number; scoreEach: number; }
 
 export default function PaperBuildPage() {
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
   const [user, setUser] = useState<{ fullName: string; role: string } | null>(null);
-  const [paper, setPaper] = useState<Paper | null>(null);
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [paperQs, setPaperQs] = useState<PaperQ[]>([]);
+  const [paper, setPaper] = useState<{ id: number; title: string; status: string; totalScore: number; questionCount: number; questions?: { id: number; questionId: number; questionContent: string; questionType: string; difficulty: number; orderNum: number; score: number }[] } | null>(null);
+  const [questions, setQuestions] = useState<{ id: number; content: string; type: string; difficulty: number; categoryName: string }[]>([]);
+  const [paperQs, setPaperQs] = useState<{ id: number; questionId: number; questionContent: string; questionType: string; difficulty: number; orderNum: number; score: number }[]>([]);
   const [tab, setTab] = useState<"manual" | "assembly">("manual");
   const [keyword, setKeyword] = useState("");
   const [type, setType] = useState("");
-  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
-  const [scores, setScores] = useState<Record<number, string>>({});
-
-  // Assembly rules state
-  const [rules, setRules] = useState<AssemblyRule[]>([
-    { questionType: "SINGLE", count: 10, scoreEach: 2 },
-  ]);
+  const [sc, setSc] = useState<Record<number, string>>({});
+  const [rules, setRules] = useState<{ questionType: string; count: number; scoreEach: number; difficulty?: number }[]>([{ questionType: "SINGLE", count: 10, scoreEach: 2 }]);
+  const [toast, setToast] = useState("");
 
   const fetchPaper = useCallback(() => {
     api.get(`/api/papers/${id}/preview`).then(r => {
-      setPaper(r.data.data);
-      setPaperQs(r.data.data.questions || []);
-      const sc: Record<number, string> = {};
-      (r.data.data.questions || []).forEach((q: PaperQ) => { sc[q.questionId] = String(q.score); });
-      setScores(sc);
+      setPaper(r.data.data); setPaperQs(r.data.data.questions || []);
+      const s: Record<number, string> = {};
+      (r.data.data.questions || []).forEach((q: { questionId: number; score: number }) => { s[q.questionId] = String(q.score); });
+      setSc(s);
     });
   }, [id]);
-
-  const searchQuestions = useCallback(() => {
-    const params = new URLSearchParams();
-    params.set("size", "20");
-    if (keyword) params.set("keyword", keyword);
-    if (type) params.set("type", type);
-    api.get(`/api/questions?${params}`).then(r => setQuestions(r.data.data.content));
-  }, [keyword, type]);
 
   useEffect(() => {
     const token = getToken();
     if (!token) { router.push("/login"); return; }
-    const payload = decodeToken(token);
-    if (!payload || payload.role !== "TEACHER") { clearToken(); router.push("/login"); return; }
-    setUser({ fullName: payload.name, role: payload.role });
+    const p = decodeToken(token);
+    if (!p || p.role !== "TEACHER") { clearToken(); router.push("/login"); return; }
+    setUser({ fullName: p.name, role: p.role });
     fetchPaper();
   }, [router, id, fetchPaper]);
 
-  useEffect(() => { searchQuestions(); }, [searchQuestions]);
+  useEffect(() => {
+    const p = new URLSearchParams({ size: "20" });
+    if (keyword) p.set("keyword", keyword);
+    if (type) p.set("type", type);
+    api.get(`/api/questions?${p}`).then(r => setQuestions(r.data.data.content));
+  }, [keyword, type]);
 
-  async function handleAddQuestion(qId: number) {
-    try {
-      await api.post(`/api/papers/${id}/questions`, { questions: [{ questionId: qId, score: parseFloat(scores[qId] || "2") }] });
-      setToast({ msg: "Question added", type: "success" });
-      fetchPaper();
-    } catch { setToast({ msg: "Failed to add question", type: "error" }); }
+  async function add(qId: number) {
+    try { await api.post(`/api/papers/${id}/questions`, { questions: [{ questionId: qId, score: parseFloat(sc[qId] || "2") }] }); setToast("Added"); fetchPaper(); } catch { setToast("Failed"); }
   }
-
-  async function handleRemoveQuestion(qId: number) {
-    try {
-      await api.delete(`/api/papers/${id}/questions/${qId}`);
-      setToast({ msg: "Question removed", type: "success" });
-      fetchPaper();
-    } catch { setToast({ msg: "Failed to remove", type: "error" }); }
+  async function remove(qId: number) {
+    try { await api.delete(`/api/papers/${id}/questions/${qId}`); setToast("Removed"); fetchPaper(); } catch { setToast("Failed"); }
   }
-
-  async function handleAssemble() {
-    try {
-      // First save rules via update, then assemble
-      await api.put(`/api/papers/${id}`, { assemblyRules: rules });
-      await api.post(`/api/papers/${id}/assemble`);
-      setToast({ msg: "Assembly complete!", type: "success" });
-      fetchPaper();
-    } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Assembly failed";
-      setToast({ msg, type: "error" });
-    }
+  async function assemble() {
+    try { await api.put(`/api/papers/${id}`, { assemblyRules: rules }); await api.post(`/api/papers/${id}/assemble`); setToast("Assembly complete"); fetchPaper(); }
+    catch (err: unknown) { setToast((err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed"); }
   }
-
-  async function handlePublish() {
+  async function publish() {
     if (!confirm("Once published, questions cannot be changed. Continue?")) return;
-    try {
-      await api.put(`/api/papers/${id}/publish`);
-      setToast({ msg: "Paper published!", type: "success" });
-      fetchPaper();
-    } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Publish failed";
-      setToast({ msg, type: "error" });
-    }
+    try { await api.put(`/api/papers/${id}/publish`); setToast("Published"); fetchPaper(); }
+    catch (err: unknown) { setToast((err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed"); }
   }
 
-  function updateRule(i: number, f: Partial<AssemblyRule>) {
-    const r = [...rules];
-    r[i] = { ...r[i], ...f };
-    setRules(r);
-  }
-  function addRule() { setRules([...rules, { questionType: "SINGLE", count: 5, scoreEach: 2 }]); }
-  function removeRule(i: number) { setRules(rules.filter((_, idx) => idx !== i)); }
+  const inp = "px-3 py-2 rounded-xl border border-slate-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all";
 
-  if (!user || !paper) return <div className="p-8 text-gray-500">Loading…</div>;
+  if (!user || !paper) return <div className="min-h-screen flex items-center justify-center text-slate-400">Loading...</div>;
 
   const isDraft = paper.status === "DRAFT";
-  const totalFromQuestions = paperQs.reduce((sum, q) => sum + q.score, 0);
+  const total = paperQs.reduce((s, q) => s + q.score, 0);
 
   return (
     <>
       <NavBar fullName={user.fullName} role={user.role} />
-      <main className="p-6 max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
+      <main className="p-8 max-w-7xl mx-auto">
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-xl font-bold text-gray-800">{paper.title}</h1>
-            <p className="text-sm text-gray-500">
-              {paper.questionCount} questions · {totalFromQuestions} / {paper.totalScore} pts ·
-              <span className={paper.status === "PUBLISHED" ? "text-green-600 font-semibold" : "text-gray-400"}>{paper.status}</span>
-            </p>
+            <h1 className="text-2xl font-bold text-slate-800 tracking-tight">{paper.title}</h1>
+            <p className="text-slate-500 text-sm mt-1">{paper.questionCount} questions &middot; {total}/{paper.totalScore} pts &middot; <span className={paper.status === "PUBLISHED" ? "text-emerald-600 font-semibold" : "text-slate-400"}>{paper.status}</span></p>
           </div>
-          {isDraft && (
-            <button onClick={handlePublish} className="px-5 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition">
-              Publish Paper
-            </button>
-          )}
+          {isDraft && <button onClick={publish} className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-all">Publish</button>}
         </div>
 
-        {/* Tabs */}
         {isDraft && (
-          <div className="flex gap-1 mb-4 border-b">
-            <button onClick={() => setTab("manual")} className={`px-4 py-2 text-sm font-medium transition ${tab === "manual" ? "border-b-2 border-blue-600 text-blue-600" : "text-gray-500 hover:text-gray-700"}`}>Manual Build</button>
-            <button onClick={() => setTab("assembly")} className={`px-4 py-2 text-sm font-medium transition ${tab === "assembly" ? "border-b-2 border-blue-600 text-blue-600" : "text-gray-500 hover:text-gray-700"}`}>Rule Assembly</button>
+          <div className="flex gap-1 mb-6">
+            {["manual", "assembly"].map(t => (
+              <button key={t} onClick={() => setTab(t as "manual" | "assembly")}
+                className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${tab === t ? "bg-white shadow-sm text-slate-800" : "text-slate-400 hover:text-slate-600"}`}>{t === "manual" ? "Manual Build" : "Rule Assembly"}</button>
+            ))}
           </div>
         )}
 
-        {/* MANUAL TAB */}
         {tab === "manual" && (
-          <div className="grid grid-cols-2 gap-4">
-            {/* Available questions */}
-            <div className="bg-white rounded-xl shadow-sm border p-4">
-              <h2 className="text-sm font-semibold text-gray-700 mb-3">Question Bank</h2>
-              <div className="flex gap-2 mb-3">
-                <input value={keyword} onChange={e => setKeyword(e.target.value)} placeholder="Search..." className="border rounded-lg px-2 py-1.5 text-xs flex-1" />
-                <select value={type} onChange={e => setType(e.target.value)} className="border rounded-lg px-2 py-1.5 text-xs">
-                  <option value="">All</option>
-                  <option value="SINGLE">Single</option>
-                  <option value="MULTIPLE">Multiple</option>
-                  <option value="TRUEFALSE">T/F</option>
-                  <option value="FILL">Fill</option>
-                </select>
+          <div className="grid grid-cols-2 gap-5">
+            <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-sm p-5">
+              <h2 className="text-sm font-semibold text-slate-600 mb-4">Question Bank</h2>
+              <div className="flex gap-2 mb-4">
+                <input value={keyword} onChange={e => setKeyword(e.target.value)} placeholder="Search..." className={`${inp} flex-1`} />
+                <select value={type} onChange={e => setType(e.target.value)} className={`${inp} w-28`}><option value="">All</option><option value="SINGLE">Single</option><option value="MULTIPLE">Multi</option><option value="TRUEFALSE">T/F</option><option value="FILL">Fill</option></select>
               </div>
-              <div className="space-y-1 max-h-[600px] overflow-y-auto">
-                {questions.filter(q => !paperQs.some(pq => pq.questionId === q.id)).map(q => (
-                  <div key={q.id} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-100 transition">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-gray-800 truncate">{q.content}</p>
-                      <span className="text-[10px] text-gray-400">{q.type} · {q.categoryName} · {"⭐".repeat(q.difficulty)}</span>
-                    </div>
-                    <input type="number" value={scores[q.id] || "2"} onChange={e => setScores({ ...scores, [q.id]: e.target.value })} className="w-14 border rounded px-1.5 py-0.5 text-xs" min="0.5" step="0.5" />
-                    {isDraft && <button onClick={() => handleAddQuestion(q.id)} className="text-xs text-blue-600 hover:underline shrink-0">+ Add</button>}
+              <div className="space-y-1 max-h-[460px] overflow-y-auto">
+                {questions.filter(q => !paperQs.some(p => p.questionId === q.id)).map(q => (
+                  <div key={q.id} className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/60 transition-colors">
+                    <div className="flex-1 min-w-0"><p className="text-xs text-slate-700 truncate">{q.content}</p><span className="text-[10px] text-slate-400">{q.type} &middot; {q.categoryName}</span></div>
+                    <input type="number" value={sc[q.id] || "2"} onChange={e => setSc({ ...sc, [q.id]: e.target.value })} className="w-16 text-center text-xs bg-white rounded-lg border border-slate-200 px-1.5 py-1" min="0.5" step="0.5" />
+                    <button onClick={() => add(q.id)} className="text-xs font-medium text-indigo-600 hover:text-indigo-500">Add</button>
                   </div>
                 ))}
               </div>
             </div>
-
-            {/* Paper questions */}
-            <div className="bg-white rounded-xl shadow-sm border p-4">
-              <h2 className="text-sm font-semibold text-gray-700 mb-3">Paper Questions ({paperQs.length})</h2>
-              <div className="space-y-1 max-h-[600px] overflow-y-auto">
+            <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-sm p-5">
+              <h2 className="text-sm font-semibold text-slate-600 mb-4">Paper Questions ({paperQs.length})</h2>
+              <div className="space-y-1 max-h-[460px] overflow-y-auto">
                 {paperQs.map((pq, i) => (
-                  <div key={pq.id} className="flex items-center gap-2 px-3 py-2 bg-blue-50/50 rounded-lg">
-                    <span className="text-xs font-bold text-gray-400 w-6">{i + 1}.</span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-gray-800 truncate">{pq.questionContent}</p>
-                      <span className="text-[10px] text-gray-400">{pq.questionType} · {"⭐".repeat(pq.difficulty)} · {pq.score} pts</span>
-                    </div>
-                    {isDraft && <button onClick={() => handleRemoveQuestion(pq.questionId)} className="text-xs text-red-400 hover:text-red-600">✕</button>}
+                  <div key={pq.id} className="flex items-center gap-3 p-3 rounded-xl bg-indigo-50/40">
+                    <span className="text-xs font-bold text-slate-400 w-6">{i + 1}.</span>
+                    <div className="flex-1 min-w-0"><p className="text-xs text-slate-700 truncate">{pq.questionContent}</p><span className="text-[10px] text-slate-400">{pq.questionType} &middot; {pq.score} pts</span></div>
+                    {isDraft && <button onClick={() => remove(pq.questionId)} className="text-xs text-slate-400 hover:text-red-500 transition-colors">Remove</button>}
                   </div>
                 ))}
-                {paperQs.length === 0 && <p className="text-xs text-gray-400 text-center py-8">No questions added yet. Search and add from the bank.</p>}
+                {paperQs.length === 0 && <p className="text-center py-12 text-xs text-slate-400">No questions yet</p>}
               </div>
             </div>
           </div>
         )}
 
-        {/* ASSEMBLY TAB */}
         {tab === "assembly" && isDraft && (
-          <div className="bg-white rounded-xl shadow-sm border p-6 max-w-3xl">
-            <h2 className="text-sm font-semibold text-gray-700 mb-4">Rule-Based Assembly</h2>
-            <p className="text-xs text-gray-400 mb-4">Define rules for automatic question selection. Existing questions will be replaced.</p>
-
-            <div className="space-y-3 mb-4">
-              {rules.map((rule, i) => (
-                <div key={i} className="flex items-center gap-3 bg-gray-50 rounded-lg px-3 py-2">
-                  <select value={rule.questionType} onChange={e => updateRule(i, { questionType: e.target.value })} className="border rounded px-2 py-1.5 text-xs w-28">
-                    <option value="SINGLE">Single</option>
-                    <option value="MULTIPLE">Multiple</option>
-                    <option value="TRUEFALSE">T/F</option>
-                    <option value="FILL">Fill</option>
-                  </select>
-                  <select value={rule.difficulty || ""} onChange={e => updateRule(i, { difficulty: e.target.value ? parseInt(e.target.value) : undefined })} className="border rounded px-2 py-1.5 text-xs w-28">
-                    <option value="">Any Difficulty</option>
-                    <option value="1">⭐ Easy</option>
-                    <option value="2">⭐⭐ Medium</option>
-                    <option value="3">⭐⭐⭐ Hard</option>
-                  </select>
-                  <input type="number" value={rule.count} onChange={e => updateRule(i, { count: parseInt(e.target.value) || 1 })} className="border rounded px-2 py-1.5 text-xs w-20" placeholder="Count" min="1" />
-                  <input type="number" value={rule.scoreEach} onChange={e => updateRule(i, { scoreEach: parseFloat(e.target.value) || 1 })} className="border rounded px-2 py-1.5 text-xs w-20" placeholder="Score" min="0.5" step="0.5" />
-                  {rules.length > 1 && <button onClick={() => removeRule(i)} className="text-red-400 text-xs">✕</button>}
+          <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-sm p-6 max-w-3xl">
+            <h2 className="text-sm font-semibold text-slate-600 mb-1">Rule-Based Assembly</h2>
+            <p className="text-xs text-slate-400 mb-5">Define rules and the system auto-selects questions. Existing questions will be replaced.</p>
+            <div className="space-y-3 mb-5">
+              {rules.map((r, i) => (
+                <div key={i} className="flex items-center gap-3 bg-slate-50/60 rounded-xl px-4 py-2.5">
+                  <select value={r.questionType} onChange={e => { const n = [...rules]; n[i].questionType = e.target.value; setRules(n); }} className={`${inp} w-28 text-xs`}><option value="SINGLE">Single</option><option value="MULTIPLE">Multiple</option><option value="TRUEFALSE">T/F</option><option value="FILL">Fill</option></select>
+                  <select value={r.difficulty || ""} onChange={e => { const n = [...rules]; n[i].difficulty = e.target.value ? parseInt(e.target.value) : undefined; setRules(n); }} className={`${inp} w-32 text-xs`}><option value="">Any Level</option><option value="1">Easy</option><option value="2">Medium</option><option value="3">Hard</option></select>
+                  <input type="number" value={r.count} onChange={e => { const n = [...rules]; n[i].count = parseInt(e.target.value) || 1; setRules(n); }} className="w-20 text-center text-xs bg-white rounded-lg border border-slate-200 px-1.5 py-1.5" placeholder="Count" />
+                  <input type="number" value={r.scoreEach} onChange={e => { const n = [...rules]; n[i].scoreEach = parseFloat(e.target.value) || 1; setRules(n); }} className="w-20 text-center text-xs bg-white rounded-lg border border-slate-200 px-1.5 py-1.5" placeholder="Score" step="0.5" />
+                  {rules.length > 1 && <button onClick={() => setRules(rules.filter((_, j) => j !== i))} className="text-xs text-slate-400 hover:text-red-500">Remove</button>}
                 </div>
               ))}
             </div>
-
-            <div className="flex gap-2">
-              <button onClick={addRule} className="px-3 py-1.5 text-xs border rounded-lg hover:bg-gray-50 transition">+ Add Rule</button>
-              <button onClick={handleAssemble} className="px-5 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-                Run Assembly
-              </button>
+            <div className="flex gap-3">
+              <button onClick={() => setRules([...rules, { questionType: "SINGLE", count: 5, scoreEach: 2 }])} className="px-4 py-2 rounded-xl text-xs font-medium border border-slate-200 bg-white/60 text-slate-600 hover:bg-white transition-colors">Add Rule</button>
+              <button onClick={assemble} className="px-5 py-2 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 shadow-lg shadow-indigo-200 transition-all">Run Assembly</button>
             </div>
           </div>
         )}
+
+        {toast && <div className="fixed bottom-6 right-6 bg-white border border-slate-200 shadow-xl rounded-xl px-4 py-3 text-sm text-slate-700 z-50">{toast}<button onClick={() => setToast("")} className="ml-3 text-slate-400 hover:text-slate-600">x</button></div>}
       </main>
-      {toast && <Toast message={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
     </>
   );
 }

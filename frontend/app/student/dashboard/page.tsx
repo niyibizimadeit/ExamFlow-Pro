@@ -7,13 +7,11 @@ import { getToken, decodeToken, clearToken } from "@/lib/auth";
 import api from "@/lib/api";
 import NavBar from "@/components/NavBar";
 
-interface Paper { id: number; title: string; durationMins: number; totalScore: number; status: string; questionCount: number; }
-
 export default function StudentDashboard() {
   const router = useRouter();
   const [user, setUser] = useState<{ fullName: string; role: string } | null>(null);
-  const [papers, setPapers] = useState<Paper[]>([]);
-  const [scores, setScores] = useState<{ id: number; paperTitle: string; score: number; paperTotalScore: number; passed: boolean }[]>([]);
+  const [papers, setPapers] = useState<{ id: number; title: string; durationMins: number; totalScore: number; status: string; questionCount: number }[]>([]);
+  const [scores, setScores] = useState<{ id: number; sessionId: number; paperTitle: string; totalScore: number; paperTotalScore: number; passed: boolean }[]>([]);
 
   useEffect(() => {
     const token = getToken();
@@ -21,58 +19,64 @@ export default function StudentDashboard() {
     const payload = decodeToken(token);
     if (!payload || payload.role !== "STUDENT") { clearToken(); router.push("/login"); return; }
     setUser({ fullName: payload.name, role: payload.role });
-    api.get("/api/papers").then(r => setPapers(r.data.data));
-    api.get("/api/scores/my").then(r => setScores(r.data.data.map((s: Record<string, unknown>) => ({
-      id: s.id, paperTitle: s.paperTitle, score: s.totalScore, paperTotalScore: s.paperTotalScore, passed: s.passed
-    }))));
+    api.get("/api/papers").then(r => setPapers(r.data.data.filter((p: { status: string }) => p.status === "PUBLISHED")));
+    api.get("/api/scores/my").then(r => setScores(r.data.data));
   }, [router]);
 
   if (!user) return null;
 
-  const availablePapers = papers.filter(p => p.status === "PUBLISHED");
-  const takenPaperIds = new Set(scores.map(s => s.paperTitle));
+  const takenIds = new Set(scores.map(s => s.paperTitle));
+  const available = papers.filter(p => !takenIds.has(p.title));
 
   return (
     <>
       <NavBar fullName={user.fullName} role={user.role} />
-      <main className="p-6 max-w-5xl mx-auto">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">Student Dashboard</h1>
-
-        {/* Available Exams */}
-        <h2 className="text-lg font-semibold text-gray-700 mb-3">Available Exams</h2>
-        <div className="grid gap-3 mb-8">
-          {availablePapers.filter(p => !takenPaperIds.has(p.title)).map(p => (
-            <div key={p.id} className="bg-white rounded-xl shadow-sm border p-4 flex items-center justify-between">
-              <div>
-                <h3 className="font-semibold text-gray-800">{p.title}</h3>
-                <p className="text-xs text-gray-400">{p.durationMins} min · {p.questionCount} questions · {p.totalScore} pts</p>
-              </div>
-              <Link href={`/student/exam/${p.id}`} className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Start Exam</Link>
-            </div>
-          ))}
-          {availablePapers.filter(p => !takenPaperIds.has(p.title)).length === 0 && (
-            <p className="text-gray-400 text-sm py-4">No exams available right now.</p>
-          )}
+      <main className="p-8 max-w-4xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Student Portal</h1>
+          <p className="text-slate-500 text-sm mt-1">Available exams and your results</p>
         </div>
 
-        {/* My Results */}
-        <h2 className="text-lg font-semibold text-gray-700 mb-3">My Results</h2>
-        <div className="space-y-2">
-          {scores.map(s => (
-            <Link key={s.id} href={`/student/results/${s.id}`} className="block bg-white rounded-xl shadow-sm border p-4 hover:shadow-md transition">
-              <div className="flex items-center justify-between">
+        <section className="mb-10">
+          <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Available Exams</h2>
+          <div className="space-y-3">
+            {available.map(p => (
+              <div key={p.id} className="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-sm p-5 flex items-center justify-between">
                 <div>
-                  <h3 className="font-semibold text-gray-800">{s.paperTitle}</h3>
-                  <p className="text-xs text-gray-400">Score: {s.score} / {s.paperTotalScore}</p>
+                  <h3 className="font-semibold text-slate-800">{p.title}</h3>
+                  <p className="text-sm text-slate-400 mt-0.5">{p.durationMins} min &middot; {p.questionCount} questions &middot; {p.totalScore} pts</p>
                 </div>
-                <span className={`text-sm font-semibold px-3 py-1 rounded-full ${s.passed ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}`}>
-                  {s.passed ? "PASSED" : "FAILED"}
-                </span>
+                <Link href={`/student/exam/${p.id}`} className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 shadow-lg shadow-indigo-200 transition-all">Begin Exam</Link>
               </div>
-            </Link>
-          ))}
-          {scores.length === 0 && <p className="text-gray-400 text-sm py-4">No results yet.</p>}
-        </div>
+            ))}
+            {available.length === 0 && (
+              <div className="bg-white/50 rounded-2xl border border-slate-100 p-10 text-center text-slate-400 text-sm">No exams available</div>
+            )}
+          </div>
+        </section>
+
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Your Results</h2>
+            <Link href="/student/wrong-answers" className="text-xs font-medium text-indigo-600 hover:text-indigo-500 transition-colors">Wrong Answer Notebook</Link>
+          </div>
+          <div className="space-y-2">
+            {scores.map(s => (
+              <Link key={s.id} href={`/student/results/${s.id}`} className="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-md transition-all p-4 flex items-center justify-between group">
+                <div>
+                  <h3 className="font-semibold text-slate-800 group-hover:text-indigo-600 transition-colors">{s.paperTitle}</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">{s.totalScore} / {s.paperTotalScore} points</p>
+                </div>
+                <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${s.passed ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-red-50 text-red-700 border-red-200"}`}>
+                  {s.passed ? "Passed" : "Failed"}
+                </span>
+              </Link>
+            ))}
+            {scores.length === 0 && (
+              <div className="bg-white/50 rounded-2xl border border-slate-100 p-10 text-center text-slate-400 text-sm">No completed exams</div>
+            )}
+          </div>
+        </section>
       </main>
     </>
   );

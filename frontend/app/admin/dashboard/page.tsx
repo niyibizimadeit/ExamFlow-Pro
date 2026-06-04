@@ -24,56 +24,57 @@ export default function AdminDashboard() {
   if (!user || !stats) return <div className="min-h-screen flex items-center justify-center text-slate-400">Loading...</div>;
 
   const cards = [
-    { label: "Total Users", value: String(stats.totalUsers || 0), href: "/admin/users", accent: "from-indigo-500 to-blue-500" },
-    { label: "Teachers", value: String(stats.totalTeachers || 0), href: "/admin/users", accent: "from-emerald-500 to-teal-500" },
-    { label: "Students", value: String(stats.totalStudents || 0), href: "/admin/users", accent: "from-violet-500 to-purple-500" },
-    { label: "Exam Papers", value: String(stats.totalPapers || 0), href: "#", accent: "from-amber-500 to-orange-500" },
-    { label: "Exams Taken", value: String(stats.totalSessions || 0), href: "#", accent: "from-rose-500 to-pink-500" },
-    { label: "Average Score", value: String(stats.systemAvgScore || 0), href: "#", accent: "from-cyan-500 to-sky-500" },
+    { label: "Total Users", value: stats.totalUsers, href: "/admin/users", gradient: "from-indigo-500 to-blue-600" },
+    { label: "Teachers", value: stats.totalTeachers, href: "/admin/users", gradient: "from-emerald-500 to-teal-600" },
+    { label: "Students", value: stats.totalStudents, href: "/admin/users", gradient: "from-violet-500 to-purple-600" },
+    { label: "Exam Papers", value: stats.totalPapers, gradient: "from-amber-500 to-orange-600" },
+    { label: "Exams Taken", value: stats.totalSessions, gradient: "from-rose-500 to-pink-600" },
+    { label: "Avg Score", value: stats.systemAvgScore, gradient: "from-cyan-500 to-sky-600" },
   ];
+
+  const passRate = Math.round(Number(stats.passRate || 0) * 100);
 
   return (
     <>
       <NavBar fullName={user.fullName} role={user.role} />
       <main className="p-8 max-w-6xl mx-auto">
         <div className="mb-8">
-          <h1 className="page-heading">Dashboard</h1>
-          <p className="page-subtitle">System overview and management</p>
+          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Dashboard</h1>
+          <p className="text-slate-500 text-sm mt-1">System overview and management</p>
         </div>
 
         <div className="grid grid-cols-3 gap-5 mb-8">
           {cards.map(c => (
-            <Link key={c.label} href={c.href} className="glass p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 group">
-              <div className="flex items-start justify-between">
+            <Link
+              key={c.label}
+              href={c.href || "#"}
+              className="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-md transition-all p-5"
+            >
+              <div className="flex items-center justify-between mb-3">
                 <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{c.label}</p>
-                <div className={`w-2 h-2 rounded-full bg-gradient-to-br ${c.accent} opacity-60 group-hover:opacity-100 transition-opacity`} />
+                <div className={`w-2.5 h-2.5 rounded-full bg-gradient-to-br ${c.gradient}`} />
               </div>
-              <p className="text-3xl font-bold text-slate-800 mt-3 tracking-tight">{c.value}</p>
+              <p className="text-3xl font-bold text-slate-800 tracking-tight">{String(c.value)}</p>
             </Link>
           ))}
         </div>
 
-        <div className="glass p-6">
+        <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-sm p-6 mb-8">
           <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Overall Pass Rate</h2>
           <div className="flex items-center gap-4">
             <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-700 ease-out"
-                style={{ width: `${Math.round(Number(stats.passRate || 0) * 100)}%` }}
-              />
+              <div className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-600 transition-all duration-700" style={{ width: `${passRate}%` }} />
             </div>
-            <span className="text-sm font-bold text-slate-600 tabular-nums w-12 text-right">
-              {Math.round(Number(stats.passRate || 0) * 100)}%
-            </span>
+            <span className="text-sm font-bold text-slate-600 tabular-nums w-12 text-right">{passRate}%</span>
           </div>
         </div>
 
-        <div className="mt-8 grid grid-cols-2 gap-5">
-          <Link href="/admin/users" className="glass p-5 hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 group">
+        <div className="grid grid-cols-2 gap-5">
+          <Link href="/admin/users" className="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-md transition-all p-5 group">
             <h3 className="font-semibold text-slate-700 group-hover:text-indigo-600 transition-colors">User Management</h3>
             <p className="text-sm text-slate-400 mt-1">View and manage all system users</p>
           </Link>
-          <div className="glass p-5 opacity-50">
+          <div className="bg-white/40 rounded-2xl border border-slate-200/40 p-5 opacity-60">
             <h3 className="font-semibold text-slate-700">System Settings</h3>
             <p className="text-sm text-slate-400 mt-1">Coming soon</p>
           </div>
