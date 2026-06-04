@@ -8,8 +8,8 @@
 
 | # | Phase Name | Day(s) | Primary Output | Status |
 |---|---|---|---|---|
-| 1 | Environment & DB Setup | Day 1 (AM) | MySQL DB created, Spring Boot runs, Next.js runs | ☐ |
-| 2 | Authentication System | Day 1 PM – Day 2 AM | JWT login works for all 3 roles | ☐ |
+| 1 | Environment & DB Setup | Day 1 (AM) | MySQL DB created, Spring Boot runs, Next.js runs | ✅ |
+| 2 | Authentication System | Day 1 PM – Day 2 AM | JWT login works for all 3 roles | ✅ |
 | 3 | Question Bank — Backend | Day 2 PM – Day 3 AM | Full CRUD APIs for questions + categories | ☐ |
 | 4 | Question Bank — Frontend | Day 3 PM – Day 4 AM | Teacher can manage questions in the browser | ☐ |
 | 5 | Exam Paper Management | Day 4 PM – Day 5 AM | Manual + rule-based paper creation works | ☐ |
@@ -26,27 +26,27 @@
 > 🎯 Get both projects running locally and database schema created
 
 ### Backend
-- [ ] Generate Spring Boot project at start.spring.io (deps: Web, JPA, MySQL, Security, Lombok, Validation)
-- [ ] Configure `application.yml`: datasource URL, username, password, JPA `ddl-auto=validate`
-- [ ] Create all 11 JPA Entity classes matching the schema
-- [ ] Create all Repository interfaces (extends `JpaRepository`)
-- [ ] Write `ExamflowApplication.java` and confirm `mvn spring-boot:run` starts
-- [ ] Create `GlobalExceptionHandler` with `@RestControllerAdvice`
-- [ ] Create standard `ApiResponse<T>` wrapper DTO
+- [x] Generate Spring Boot project at start.spring.io (deps: Web, JPA, MySQL, Security, Lombok, Validation)
+- [x] Configure `application.yml`: datasource URL, username, password, JPA `ddl-auto=validate`
+- [x] Create all 11 JPA Entity classes matching the schema
+- [x] Create all Repository interfaces (extends `JpaRepository`)
+- [x] Write `ExamflowApplication.java` and confirm `mvn spring-boot:run` starts
+- [x] Create `GlobalExceptionHandler` with `@RestControllerAdvice`
+- [x] Create standard `ApiResponse<T>` wrapper DTO
 
 ### Frontend
-- [ ] Run: `npx create-next-app@14 frontend --typescript --tailwind --eslint --app`
-- [ ] Install: `npm install axios jwt-decode recharts lucide-react`
-- [ ] Create `/lib/api.ts` — Axios instance with Authorization header interceptor
-- [ ] Create `/lib/auth.ts` — `getToken`, `setToken`, `clearToken`, `decodeRole` helpers
-- [ ] Create skeleton layouts for `/admin`, `/teacher`, `/student` route groups
-- [ ] Create a placeholder home page that redirects to `/login`
+- [x] Run: `npx create-next-app@14 frontend --typescript --tailwind --eslint --app`
+- [x] Install: `npm install axios jwt-decode recharts lucide-react`
+- [x] Create `/lib/api.ts` — Axios instance with Authorization header interceptor
+- [x] Create `/lib/auth.ts` — `getToken`, `setToken`, `clearToken`, `decodeRole` helpers
+- [x] Create skeleton layouts for `/admin`, `/teacher`, `/student` route groups
+- [x] Create a placeholder home page that redirects to `/login`
 
 ### Database
-- [ ] Create database: `CREATE DATABASE examflow CHARACTER SET utf8mb4;`
-- [ ] Run `schema.sql` — all 11 CREATE TABLE statements
-- [ ] Verify all tables exist: `SHOW TABLES;` and `DESCRIBE users;`
-- [ ] Insert 1 test admin user manually to verify connectivity
+- [x] Create database: `CREATE DATABASE examflow CHARACTER SET utf8mb4;`
+- [x] Run `schema.sql` — all 11 CREATE TABLE statements
+- [x] Verify all tables exist: `SHOW TABLES;` and `DESCRIBE users;`
+- [x] Insert 1 test admin user manually to verify connectivity
 
 **✅ Phase Done When:** Spring Boot starts without error. Next.js dev server shows homepage. All 11 tables exist in MySQL.
 
@@ -57,29 +57,29 @@
 > 🎯 JWT-based login/register with role-based access control for all 3 roles
 
 ### Backend
-- [ ] Add `jjwt` dependency to `pom.xml` (`jjwt-api`, `jjwt-impl`, `jjwt-jackson`)
-- [ ] Create `JwtUtils`: `generateToken(user)`, `validateToken(token)`, `getUsername`, `getRole`
-- [ ] Create `JwtAuthFilter` extends `OncePerRequestFilter`
-- [ ] Configure `SecurityConfig`: permit `/api/auth/**`, require auth on all others, stateless session
-- [ ] Create `UserDetailsServiceImpl` — load user by email from DB
-- [ ] Create `AuthController`: `POST /api/auth/login`, `POST /api/auth/register`
-- [ ] Create `UserController`: `GET /api/auth/me`, `PUT /api/auth/me`
-- [ ] Password hashing with `BCryptPasswordEncoder`
-- [ ] Return role in JWT payload claims
-- [ ] Configure CORS for `http://localhost:3000`
+- [x] Add `jjwt` dependency to `pom.xml` (`jjwt-api`, `jjwt-impl`, `jjwt-jackson`)
+- [x] Create `JwtUtils`: `generateToken(user)`, `validateToken(token)`, `getUsername`, `getRole`
+- [x] Create `JwtAuthFilter` extends `OncePerRequestFilter`
+- [x] Configure `SecurityConfig`: permit `/api/auth/**`, require auth on all others, stateless session
+- [x] Create `UserDetailsServiceImpl` — load user by email from DB
+- [x] Create `AuthController`: `POST /api/auth/login`, `POST /api/auth/register`
+- [x] Create `UserController`: `GET /api/auth/me`, `PUT /api/auth/me`
+- [x] Password hashing with `BCryptPasswordEncoder`
+- [x] Return role in JWT payload claims
+- [x] Configure CORS for `http://localhost:3000`
 
 ### Frontend
-- [ ] Create `/app/login/page.tsx` — login form (email + password)
-- [ ] On login success: save JWT to localStorage, decode role, redirect by role
-- [ ] Create `middleware.ts` — protect `/admin`, `/teacher`, `/student` routes by JWT role
-- [ ] Create `useAuth()` hook: returns `{ user, token, logout }`
-- [ ] Create `NavBar` component with logout button and username display
-- [ ] Create skeleton dashboard pages: `/admin/dashboard`, `/teacher/dashboard`, `/student/dashboard`
-- [ ] Test: login as admin → goes to `/admin/dashboard`, as student → `/student/dashboard`
+- [x] Create `/app/login/page.tsx` — login form (email + password)
+- [x] On login success: save JWT to localStorage, decode role, redirect by role
+- [x] Create `middleware.ts` — protect `/admin`, `/teacher`, `/student` routes by JWT role
+- [x] Create `useAuth()` hook: returns `{ user, token, logout }`
+- [x] Create `NavBar` component with logout button and username display
+- [x] Create skeleton dashboard pages: `/admin/dashboard`, `/teacher/dashboard`, `/student/dashboard`
+- [x] Test: login as admin → goes to `/admin/dashboard`, as student → `/student/dashboard`
 
 ### Database
-- [ ] Insert test data: 1 admin, 2 teachers, 5 students (BCrypt hashed passwords)
-- [ ] Passwords for test data: `admin123`, `teacher123`, `student123`
+- [x] Insert test data: 1 admin, 2 teachers, 5 students (BCrypt hashed passwords)
+- [x] Passwords for test data: `admin123`, `teacher123`, `student123`
 
 **✅ Phase Done When:** All 3 role logins work, wrong role gets 403 or redirect, JWT is attached on all API calls, logout clears token.
 

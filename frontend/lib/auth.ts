@@ -9,15 +9,18 @@ export function getToken(): string | null {
 
 export function setToken(token: string): void {
   localStorage.setItem(TOKEN_KEY, token);
+  // Also set as cookie so Next.js middleware can read it
+  document.cookie = `${TOKEN_KEY}=${token}; path=/; max-age=86400; SameSite=Lax`;
 }
 
 export function clearToken(): void {
   localStorage.removeItem(TOKEN_KEY);
+  document.cookie = `${TOKEN_KEY}=; path=/; max-age=0`;
 }
 
 export type UserRole = "ADMIN" | "TEACHER" | "STUDENT";
 
-interface JwtPayload {
+export interface JwtPayload {
   sub: string;       // email
   role: UserRole;
   name: string;
