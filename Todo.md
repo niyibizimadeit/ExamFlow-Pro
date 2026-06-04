@@ -1,4 +1,4 @@
-# ExamFlow Pro — 10-Phase Development TODO
+# ExamFlow Pro  10-Phase Development TODO
 
 > Each phase has clear backend, frontend, and database tasks. Check off items as completed. A phase is complete **only** when its acceptance criteria is met.
 
