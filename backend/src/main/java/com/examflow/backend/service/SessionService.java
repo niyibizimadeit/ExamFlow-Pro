@@ -57,9 +57,16 @@ public class SessionService {
             throw new BusinessException("Exam has ended");
         }
 
-        // Check duplicate
-        if (sessionRepo.findByPaperAndStudent(paper, student).isPresent()) {
-            throw new BusinessException("You have already started this exam");
+        // If a session already exists, resume it instead of erroring
+        Optional<ExamSession> existing = sessionRepo.findByPaperAndStudent(paper, student);
+        if (existing.isPresent()) {
+            ExamSession session = existing.get();
+            if (session.getStatus() == SessionStatus.IN_PROGRESS) {
+                // Idempotent: return the existing in-progress session so the student can resume
+                return buildSessionResponse(session);
+            }
+            // Already submitted or graded — cannot restart
+            throw new BusinessException("You have already submitted this exam");
         }
 
         ExamSession session = new ExamSession();
