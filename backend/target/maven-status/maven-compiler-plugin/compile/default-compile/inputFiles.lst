@@ -24,6 +24,7 @@
 /Users/mac/Desktop/ExamFlow-Pro/backend/src/main/java/com/examflow/backend/exception/BusinessException.java
 /Users/mac/Desktop/ExamFlow-Pro/backend/src/main/java/com/examflow/backend/service/GradingService.java
 /Users/mac/Desktop/ExamFlow-Pro/backend/src/main/java/com/examflow/backend/controller/AuthController.java
+/Users/mac/Desktop/ExamFlow-Pro/backend/src/main/java/com/examflow/backend/dto/WrongAnswersResponse.java
 /Users/mac/Desktop/ExamFlow-Pro/backend/src/main/java/com/examflow/backend/dto/QuestionResponseDto.java
 /Users/mac/Desktop/ExamFlow-Pro/backend/src/main/java/com/examflow/backend/entity/StudentAnswer.java
 /Users/mac/Desktop/ExamFlow-Pro/backend/src/main/java/com/examflow/backend/dto/ScoreResponseDto.java

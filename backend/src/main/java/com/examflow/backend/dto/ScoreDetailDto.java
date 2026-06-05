@@ -34,5 +34,12 @@ public class ScoreDetailDto {
         private BigDecimal scoreEarned;
         private BigDecimal maxScore;
         private String explanation;
+        // Phase 9 — wrong-answer notebook context
+        private Long paperId;
+        private String paperTitle;
+        private Long sessionId;
+        private Long categoryId;
+        private String categoryName;
+        private Integer difficulty;
     }
 }

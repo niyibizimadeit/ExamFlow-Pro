@@ -49,8 +49,12 @@ public class ScoreController {
     }
 
     @GetMapping("/wrong/all")
-    public ResponseEntity<ApiResponse<List<ScoreDetailDto.AnswerDetailDto>>> allWrongAnswers(
-            Authentication auth) {
-        return ResponseEntity.ok(ApiResponse.ok(gradingService.getAllWrongAnswers(auth.getName())));
+    public ResponseEntity<ApiResponse<WrongAnswersResponse>> allWrongAnswers(
+            Authentication auth,
+            @RequestParam(required = false) Long paperId,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) Long categoryId) {
+        return ResponseEntity.ok(ApiResponse.ok(
+                gradingService.getAllWrongAnswers(auth.getName(), paperId, type, categoryId)));
     }
 }

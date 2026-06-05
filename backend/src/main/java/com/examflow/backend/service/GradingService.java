@@ -297,17 +297,61 @@ public class GradingService {
         return buildAnswerDetails(session, answers);
     }
 
-    public List<ScoreDetailDto.AnswerDetailDto> getAllWrongAnswers(String email) {
+    /**
+     * Returns all wrong answers across all graded sessions for the current student,
+     * deduplicated by question (keeps the most recent occurrence).
+     * Supports optional filtering by paper, question type, and category.
+     */
+    public WrongAnswersResponse getAllWrongAnswers(String email,
+                                                    Long paperId,
+                                                    String questionType,
+                                                    Long categoryId) {
         User student = userRepo.findByEmail(email).orElseThrow();
         List<ScoreDetailDto.AnswerDetailDto> all = new ArrayList<>();
+        Set<Long> seenQuestionIds = new HashSet<>();
+
+        // Process sessions ordered by most recent first so dedup keeps the latest
         List<ExamSession> sessions = sessionRepo.findByStudent(student).stream()
                 .filter(s -> s.getStatus() == ExamSession.SessionStatus.GRADED)
+                .sorted((a, b) -> b.getSubmitTime().compareTo(a.getSubmitTime()))
                 .toList();
+
         for (ExamSession session : sessions) {
+            // Filter by paper if requested
+            if (paperId != null && !session.getPaper().getId().equals(paperId)) {
+                continue;
+            }
+
             List<StudentAnswer> wrong = answerRepo.findBySessionAndIsCorrectFalse(session);
-            all.addAll(buildAnswerDetails(session, wrong));
+
+            // Apply type and category filters
+            List<StudentAnswer> filtered = wrong.stream()
+                    .filter(a -> {
+                        Question q = a.getQuestion();
+                        if (questionType != null && !questionType.isBlank()
+                                && !q.getType().name().equalsIgnoreCase(questionType)) {
+                            return false;
+                        }
+                        if (categoryId != null && !q.getCategory().getId().equals(categoryId)) {
+                            return false;
+                        }
+                        return true;
+                    })
+                    .toList();
+
+            for (StudentAnswer ans : filtered) {
+                Long qid = ans.getQuestion().getId();
+                if (!seenQuestionIds.contains(qid)) {
+                    seenQuestionIds.add(qid);
+                    all.addAll(buildAnswerDetails(session, List.of(ans)));
+                }
+            }
         }
-        return all;
+
+        return WrongAnswersResponse.builder()
+                .totalCount(all.size())
+                .answers(all)
+                .build();
     }
 
     private List<ScoreDetailDto.AnswerDetailDto> buildAnswerDetails(
@@ -316,8 +360,10 @@ public class GradingService {
         for (PaperQuestion pq : paperQuestionRepo.findByPaperOrderByOrderNum(session.getPaper())) {
             scoreMap.put(pq.getQuestion().getId(), pq.getScore());
         }
+        ExamPaper paper = session.getPaper();
         return answers.stream().map(ans -> {
             Question q = ans.getQuestion();
+            Category cat = q.getCategory();
             return ScoreDetailDto.AnswerDetailDto.builder()
                     .questionId(q.getId())
                     .questionContent(q.getContent())
@@ -328,6 +374,13 @@ public class GradingService {
                     .scoreEarned(ans.getScoreEarned())
                     .maxScore(scoreMap.getOrDefault(q.getId(), BigDecimal.ZERO))
                     .explanation(q.getExplanation())
+                    // Phase 9 — wrong-answer notebook context
+                    .paperId(paper.getId())
+                    .paperTitle(paper.getTitle())
+                    .sessionId(session.getId())
+                    .categoryId(cat.getId())
+                    .categoryName(cat.getName())
+                    .difficulty(q.getDifficulty())
                     .build();
         }).toList();
     }

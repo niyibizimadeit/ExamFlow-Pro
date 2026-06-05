@@ -39,6 +39,7 @@ com/examflow/backend/exception/BusinessException.class
 com/examflow/backend/repository/QuestionRepository.class
 com/examflow/backend/service/GradingService.class
 com/examflow/backend/dto/PaperResponseDto$PaperQuestionResp$PaperQuestionRespBuilder.class
+com/examflow/backend/dto/WrongAnswersResponse.class
 com/examflow/backend/dto/AddQuestionsDto.class
 com/examflow/backend/entity/Question.class
 com/examflow/backend/entity/ExamPaper.class
@@ -64,6 +65,7 @@ com/examflow/backend/dto/ScoreDetailDto.class
 com/examflow/backend/service/GradingService$1.class
 com/examflow/backend/dto/AuthResponse.class
 com/examflow/backend/controller/ScoreController.class
+com/examflow/backend/dto/WrongAnswersResponse$WrongAnswersResponseBuilder.class
 com/examflow/backend/repository/ScoreRecordRepository.class
 com/examflow/backend/entity/QuestionStdAnswer.class
 com/examflow/backend/entity/User$Role.class

@@ -39,12 +39,11 @@ export default function ProfilePage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault(); setSaving(true);
     try {
-      const body: Record<string, unknown> = { fullName, studentNo, className: className };
+      const body: Record<string, unknown> = { fullName, studentNo, className };
       if (newPassword) {
         if (newPassword !== confirmPassword) {
           setToast({ msg: "Passwords do not match", type: "error" });
-          setSaving(false);
-          return;
+          setSaving(false); return;
         }
         body.currentPassword = currentPassword;
         body.newPassword = newPassword;
@@ -57,64 +56,112 @@ export default function ProfilePage() {
     } finally { setSaving(false); }
   }
 
-  if (!user || !profile) return <div className="min-h-screen flex items-center justify-center text-slate-400">Loading...</div>;
+  if (!user || !profile) return (
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink-300)" }}>
+      Loading…
+    </div>
+  );
 
-  const inputClass = "w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white/60 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all";
+  const inputStyle: React.CSSProperties = {
+    display: "block", width: "100%", padding: "0.8rem 1rem",
+    fontSize: "0.9375rem", borderRadius: "10px", outline: "none",
+    border: "1.5px solid rgba(212,180,131,0.5)",
+    background: "rgba(253,250,244,0.7)", color: "var(--ink-900)",
+    fontFamily: "'DM Sans', sans-serif", boxSizing: "border-box",
+    transition: "border-color 0.15s ease, box-shadow 0.15s ease",
+  };
+  const disabledInputStyle: React.CSSProperties = { ...inputStyle, opacity: 0.5, cursor: "not-allowed" };
+  const labelStyle: React.CSSProperties = {
+    display: "block", fontSize: "0.6875rem", fontWeight: 600,
+    textTransform: "uppercase", letterSpacing: "0.12em",
+    color: "var(--ink-400, #b8a18a)", marginBottom: "0.5rem",
+    fontFamily: "'DM Sans', sans-serif",
+  };
+
+  const focus = (e: React.FocusEvent<HTMLInputElement>) => {
+    e.currentTarget.style.borderColor = "var(--amber-accent)";
+    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(181,115,42,0.12)";
+  };
+  const blur = (e: React.FocusEvent<HTMLInputElement>) => {
+    e.currentTarget.style.borderColor = "rgba(212,180,131,0.5)";
+    e.currentTarget.style.boxShadow = "none";
+  };
 
   return (
     <>
       <NavBar fullName={user.fullName} role={user.role} />
-      <main className="p-8 max-w-2xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
+      <main style={{ padding: "2.5rem 2rem", maxWidth: "42rem", margin: "0 auto" }} className="animate-fade-in">
+
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "2.5rem" }}>
           <div>
-            <h1 className="text-2xl font-bold text-slate-800 tracking-tight">My Profile</h1>
-            <p className="text-slate-500 text-sm mt-1">Manage your personal information</p>
+            <h1 className="page-heading">My Profile</h1>
+            <p className="page-subheading">Manage your personal information</p>
           </div>
-          <Link href="/student/dashboard" className="text-sm font-medium text-indigo-600 hover:text-indigo-500 transition-colors">Dashboard</Link>
+          <Link href="/student/dashboard" style={{ fontSize: "0.875rem", fontWeight: 500, color: "var(--amber-accent)", textDecoration: "none" }}>
+            Dashboard
+          </Link>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-sm p-6 space-y-5">
-          <div>
-            <label className="block text-sm font-medium text-slate-600 mb-1.5">Email</label>
-            <input type="email" value={(profile.email as string) || ""} disabled className={`${inputClass} opacity-50 cursor-not-allowed`} />
-            <p className="text-xs text-slate-400 mt-1">Email cannot be changed</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-600 mb-1.5">Full Name</label>
-            <input value={fullName} onChange={e => setFullName(e.target.value)} required className={inputClass} />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-600 mb-1.5">Student No</label>
-              <input value={studentNo} onChange={e => setStudentNo(e.target.value)} className={inputClass} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-600 mb-1.5">Class</label>
-              <input value={className} onChange={e => setClassName(e.target.value)} className={inputClass} />
-            </div>
-          </div>
+        <form onSubmit={handleSubmit}>
+          <div className="card" style={{ padding: "1.75rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
 
-          <div className="border-t border-slate-100 pt-5">
-            <h3 className="text-sm font-semibold text-slate-600 mb-4">Change Password</h3>
-            <div className="space-y-3">
+            <div>
+              <label style={labelStyle}>Email</label>
+              <input type="email" value={(profile.email as string) || ""} disabled style={disabledInputStyle} />
+              <p style={{ fontSize: "0.75rem", color: "var(--ink-300)", marginTop: "0.375rem" }}>Email cannot be changed</p>
+            </div>
+
+            <div>
+              <label style={labelStyle}>Full Name</label>
+              <input value={fullName} onChange={e => setFullName(e.target.value)} required style={inputStyle} onFocus={focus} onBlur={blur} />
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
               <div>
-                <label className="block text-sm font-medium text-slate-600 mb-1.5">Current Password</label>
-                <input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} className={inputClass} />
+                <label style={labelStyle}>Student No</label>
+                <input value={studentNo} onChange={e => setStudentNo(e.target.value)} style={inputStyle} onFocus={focus} onBlur={blur} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-600 mb-1.5">New Password</label>
-                <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className={inputClass} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-600 mb-1.5">Confirm New Password</label>
-                <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className={inputClass} />
+                <label style={labelStyle}>Class</label>
+                <input value={className} onChange={e => setClassName(e.target.value)} style={inputStyle} onFocus={focus} onBlur={blur} />
               </div>
             </div>
-          </div>
 
-          <button type="submit" disabled={saving} className="w-full py-2.5 px-4 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 shadow-lg shadow-indigo-200 transition-all disabled:opacity-50">
-            {saving ? "Saving..." : "Update Profile"}
-          </button>
+            <div style={{ borderTop: "1px solid rgba(212,180,131,0.25)", paddingTop: "1.25rem" }}>
+              <p className="section-label" style={{ marginBottom: "1rem" }}>Change Password</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.875rem" }}>
+                {[
+                  { label: "Current Password", value: currentPassword, setter: setCurrentPassword },
+                  { label: "New Password",      value: newPassword,     setter: setNewPassword },
+                  { label: "Confirm New Password", value: confirmPassword, setter: setConfirmPassword },
+                ].map(f => (
+                  <div key={f.label}>
+                    <label style={labelStyle}>{f.label}</label>
+                    <input type="password" value={f.value} onChange={e => f.setter(e.target.value)}
+                      style={inputStyle} onFocus={focus} onBlur={blur} />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={saving}
+              style={{
+                width: "100%", padding: "0.9375rem", borderRadius: "10px", border: "none",
+                cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.55 : 1,
+                fontSize: "0.9375rem", fontWeight: 500, fontFamily: "'DM Sans', sans-serif",
+                color: "#fdf8f0", marginTop: "0.25rem",
+                background: "linear-gradient(135deg, var(--amber-accent), #7a3318)",
+                boxShadow: "0 3px 12px rgba(181,115,42,0.28)",
+                transition: "transform 0.15s ease",
+              }}
+              onMouseEnter={e => { if (!saving) e.currentTarget.style.transform = "translateY(-1px)"; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; }}
+            >
+              {saving ? "Saving…" : "Update Profile"}
+            </button>
+          </div>
         </form>
       </main>
       {toast && <Toast message={toast.msg} type={toast.type} onClose={() => setToast(null)} />}

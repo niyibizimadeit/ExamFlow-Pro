@@ -7,11 +7,21 @@ import { getToken, decodeToken, clearToken } from "@/lib/auth";
 import api from "@/lib/api";
 import NavBar from "@/components/NavBar";
 
+type Answer = {
+  questionId: number; questionContent: string; questionType: string;
+  answerGiven: string; correctAnswer: string; isCorrect: boolean;
+  scoreEarned: number; maxScore: number; explanation: string;
+};
+type Detail = {
+  id: number; sessionId: number; paperTitle: string; score: number;
+  totalScore: number; passed: boolean; gradedAt: string; answers: Answer[];
+};
+
 export default function ResultDetailPage() {
   const router = useRouter();
   const { scoreId } = useParams<{ scoreId: string }>();
   const [user, setUser] = useState<{ fullName: string; role: string } | null>(null);
-  const [detail, setDetail] = useState<{ id: number; sessionId: number; paperTitle: string; score: number; totalScore: number; passed: boolean; gradedAt: string; answers: { questionId: number; questionContent: string; questionType: string; answerGiven: string; correctAnswer: string; isCorrect: boolean; scoreEarned: number; maxScore: number; explanation: string }[] } | null>(null);
+  const [detail, setDetail] = useState<Detail | null>(null);
 
   useEffect(() => {
     const token = getToken();
@@ -19,52 +29,121 @@ export default function ResultDetailPage() {
     const payload = decodeToken(token);
     if (!payload || payload.role !== "STUDENT") { clearToken(); router.push("/login"); return; }
     setUser({ fullName: payload.name, role: payload.role });
-    api.get("/api/scores/my")
-      .then(r => {
-        const score = (r.data.data || []).find((s: Record<string, unknown>) => s.id === parseInt(scoreId));
-        if (score?.sessionId) {
-          api.get(`/api/scores/detail/${score.sessionId}`)
-            .then(r2 => setDetail(r2.data.data))
-            .catch(() => {});
-        }
-      })
-      .catch(() => {});
+    api.get("/api/scores/my").then(r => {
+      const score = (r.data.data || []).find((s: Record<string, unknown>) => s.id === parseInt(scoreId));
+      if (score?.sessionId)
+        api.get(`/api/scores/detail/${score.sessionId}`).then(r2 => setDetail(r2.data.data)).catch(() => {});
+    }).catch(() => {});
   }, [router, scoreId]);
 
-  if (!user || !detail) return <div className="min-h-screen flex items-center justify-center text-slate-400">Loading...</div>;
+  if (!user || !detail) return (
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink-300)" }}>
+      Loading…
+    </div>
+  );
 
   const pct = detail.totalScore > 0 ? Math.round((detail.score / detail.totalScore) * 100) : 0;
 
   return (
     <>
       <NavBar fullName={user.fullName} role={user.role} />
-      <main className="p-8 max-w-3xl mx-auto">
-        <Link href="/student/dashboard" className="text-sm font-medium text-indigo-600 hover:text-indigo-500 transition-colors">Back to Dashboard</Link>
+      <main style={{ padding: "2.5rem 2rem", maxWidth: "48rem", margin: "0 auto" }} className="animate-fade-in">
 
-        <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-sm p-6 mt-4 mb-8">
-          <h1 className="text-xl font-bold text-slate-800">{detail.paperTitle}</h1>
-          <div className="flex items-center gap-4 mt-3">
-            <span className="text-3xl font-bold text-slate-800 tabular-nums">{detail.score}<span className="text-lg text-slate-400 font-normal">/{detail.totalScore}</span></span>
-            <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${detail.passed ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-red-50 text-red-700 border-red-200"}`}>{detail.passed ? "Passed" : "Failed"}</span>
+        <Link href="/student/dashboard" style={{ fontSize: "0.875rem", fontWeight: 500, color: "var(--amber-accent)", textDecoration: "none", display: "inline-block", marginBottom: "1.5rem" }}>
+          ← Back to Dashboard
+        </Link>
+
+        {/* Score summary card */}
+        <div className="card animate-slide-up" style={{ padding: "1.75rem", marginBottom: "2rem" }}>
+          <h1 className="font-display" style={{ fontSize: "1.75rem", fontWeight: 300, color: "var(--ink-900)", marginBottom: "1rem" }}>
+            {detail.paperTitle}
+          </h1>
+          <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.25rem" }}>
+            <span className="font-display" style={{ fontSize: "2.75rem", fontWeight: 300, color: "var(--ink-900)", lineHeight: 1 }}>
+              {detail.score}
+              <span style={{ fontSize: "1.25rem", color: "var(--ink-300)", fontWeight: 300 }}>/{detail.totalScore}</span>
+            </span>
+            <span style={{
+              fontSize: "0.75rem", fontWeight: 600, padding: "0.25rem 0.75rem",
+              borderRadius: "9999px", fontFamily: "'DM Sans', sans-serif",
+              ...(detail.passed
+                ? { background: "rgba(134,168,102,0.12)", color: "#4a6e30", border: "1px solid rgba(134,168,102,0.30)" }
+                : { background: "rgba(168,84,56,0.10)", color: "var(--terracotta)", border: "1px solid rgba(168,84,56,0.22)" }),
+            }}>
+              {detail.passed ? "Passed" : "Failed"}
+            </span>
           </div>
-          <div className="mt-4 h-2 bg-slate-100 rounded-full overflow-hidden">
-            <div className={`h-full rounded-full transition-all duration-700 ${detail.passed ? "bg-gradient-to-r from-emerald-500 to-teal-500" : "bg-gradient-to-r from-red-400 to-rose-500"}`} style={{ width: `${pct}%` }} />
+          <div style={{ height: "6px", background: "rgba(212,180,131,0.25)", borderRadius: "9999px", overflow: "hidden" }}>
+            <div style={{
+              height: "100%", width: `${pct}%`, borderRadius: "9999px",
+              background: detail.passed
+                ? "linear-gradient(90deg, #86a866, #4a6e30)"
+                : "linear-gradient(90deg, var(--parchment-400), var(--terracotta))",
+              transition: "width 0.8s cubic-bezier(0.16,1,0.3,1)",
+            }} />
           </div>
+          <p style={{ fontSize: "0.8125rem", color: "var(--ink-300)", marginTop: "0.5rem" }}>{pct}%</p>
         </div>
 
-        <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Question Breakdown</h2>
-        <div className="space-y-3">
+        <p className="section-label" style={{ marginBottom: "1rem" }}>Question Breakdown</p>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
           {detail.answers.map((a, i) => (
-            <div key={a.questionId} className={`bg-white/70 backdrop-blur-sm rounded-2xl border shadow-sm p-5 ${a.isCorrect ? "border-l-2 border-l-emerald-400 border-slate-200/60" : "border-l-2 border-l-red-400 border-slate-200/60"}`}>
-              <div className="flex items-start justify-between mb-3">
-                <p className="text-sm font-medium text-slate-800">{i + 1}. {a.questionContent}</p>
-                <span className={`text-xs font-bold ml-2 shrink-0 ${a.isCorrect ? "text-emerald-600" : "text-red-500"}`}>{a.scoreEarned}/{a.maxScore}</span>
+            <div
+              key={a.questionId}
+              className="card animate-slide-up"
+              style={{
+                padding: "1.25rem 1.375rem",
+                animationDelay: `${i * 40}ms`,
+                borderLeft: `3px solid ${a.isCorrect ? "#86a866" : "var(--terracotta)"}`,
+                borderRadius: "10px 14px 14px 10px",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "0.875rem" }}>
+                <p style={{ fontSize: "0.9375rem", color: "var(--ink-800, #2a2018)", flex: 1, paddingRight: "1rem", lineHeight: 1.5 }}>
+                  {i + 1}. {a.questionContent}
+                </p>
+                <span style={{
+                  fontSize: "0.8125rem", fontWeight: 600, flexShrink: 0,
+                  color: a.isCorrect ? "#4a6e30" : "var(--terracotta)",
+                }}>
+                  {a.scoreEarned}/{a.maxScore}
+                </span>
               </div>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div><span className="text-slate-400">Your answer: </span><span className={a.isCorrect ? "text-emerald-600 font-medium" : "text-red-500 font-medium"}>{a.answerGiven || "(unanswered)"}</span></div>
-                {!a.isCorrect && <div><span className="text-slate-400">Correct: </span><span className="text-emerald-600 font-medium">{a.correctAnswer}</span></div>}
+
+              <div style={{
+                display: "grid", gridTemplateColumns: a.isCorrect ? "1fr" : "1fr 1fr",
+                gap: "0.5rem", fontSize: "0.8125rem",
+                background: "rgba(212,180,131,0.08)", borderRadius: "8px", padding: "0.75rem",
+              }}>
+                <div>
+                  <span style={{ color: "var(--ink-300)" }}>Your answer: </span>
+                  <span style={{ fontWeight: 500, color: a.isCorrect ? "#4a6e30" : "var(--terracotta)" }}>
+                    {a.answerGiven || "(unanswered)"}
+                  </span>
+                </div>
+                {!a.isCorrect && (
+                  <div>
+                    <span style={{ color: "var(--ink-300)" }}>Correct: </span>
+                    <span style={{ fontWeight: 500, color: "#4a6e30" }}>{a.correctAnswer}</span>
+                  </div>
+                )}
               </div>
-              {a.explanation && <p className="text-xs text-slate-400 mt-3 pt-3 border-t border-slate-100">{a.explanation}</p>}
+
+              {a.explanation && (
+                <details style={{ marginTop: "0.875rem" }}>
+                  <summary style={{ fontSize: "0.8125rem", fontWeight: 500, color: "var(--amber-accent)", cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>
+                    Explanation
+                  </summary>
+                  <p style={{
+                    fontSize: "0.8125rem", color: "var(--ink-500)", marginTop: "0.5rem",
+                    padding: "0.75rem", background: "rgba(181,115,42,0.06)",
+                    borderRadius: "8px", lineHeight: 1.6,
+                  }}>
+                    {a.explanation}
+                  </p>
+                </details>
+              )}
             </div>
           ))}
         </div>

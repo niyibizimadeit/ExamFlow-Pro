@@ -6,27 +6,51 @@ import Link from "next/link";
 import { getToken, decodeToken, clearToken } from "@/lib/auth";
 import NavBar from "@/components/NavBar";
 
+const IconQuestionBank = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+);
+
+const IconPapers = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+  </svg>
+);
+
+const IconResults = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+  </svg>
+);
+
 const modules = [
   {
     label: "Question Bank",
     desc: "Create and manage questions across all types and categories",
     href: "/teacher/questions",
-    gradient: "from-indigo-500 to-blue-600",
-    icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+    iconBg: "linear-gradient(135deg, rgba(212,180,131,0.35) 0%, rgba(181,115,42,0.22) 100%)",
+    iconColor: "var(--amber-accent)",
+    Icon: IconQuestionBank,
   },
   {
     label: "Exam Papers",
     desc: "Build exam papers with manual selection or rule-based assembly",
     href: "/teacher/papers",
-    gradient: "from-emerald-500 to-teal-600",
-    icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>,
+    iconBg: "linear-gradient(135deg, rgba(134,168,102,0.28) 0%, rgba(74,110,48,0.18) 100%)",
+    iconColor: "#4a6e30",
+    Icon: IconPapers,
   },
   {
     label: "Results",
     desc: "View student scores, statistics, and performance charts",
     href: "/teacher/papers",
-    gradient: "from-violet-500 to-purple-600",
-    icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>,
+    iconBg: "linear-gradient(135deg, rgba(168,84,56,0.22) 0%, rgba(122,51,24,0.15) 100%)",
+    iconColor: "var(--terracotta)",
+    Icon: IconResults,
   },
 ];
 
@@ -47,23 +71,54 @@ export default function TeacherDashboard() {
   return (
     <>
       <NavBar fullName={user.fullName} role={user.role} />
-      <main className="p-8 max-w-5xl mx-auto">
+      <main className="px-6 py-10 max-w-4xl mx-auto animate-fade-in">
+
+        {/* Header */}
         <div className="mb-10">
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Teacher Workspace</h1>
-          <p className="text-slate-500 text-sm mt-1">Manage questions, exams, and view student performance</p>
+          <p style={{
+            fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase",
+            letterSpacing: "0.16em", color: "var(--ink-300)",
+            fontFamily: "'DM Sans', sans-serif", marginBottom: "0.5rem",
+          }}>
+            Teacher Workspace
+          </p>
+          <h1 className="font-display" style={{
+            fontSize: "2.25rem", fontWeight: 300, letterSpacing: "-0.02em",
+            color: "var(--ink-900)", lineHeight: 1.15,
+          }}>
+            Welcome back{user.fullName ? `, ${user.fullName.split(" ")[0]}` : ""}
+          </h1>
+          <p style={{ fontSize: "0.875rem", color: "var(--ink-300)", marginTop: "0.5rem" }}>
+            Manage questions, exams, and view student performance
+          </p>
         </div>
-        <div className="grid grid-cols-3 gap-5">
-          {modules.map(m => (
-            <Link
-              key={m.label}
-              href={m.href}
-              className="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all p-6 group"
-            >
-              <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${m.gradient} flex items-center justify-center text-white mb-4 shadow-lg group-hover:scale-105 transition-transform`}>
-                {m.icon}
+
+        {/* Module cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 animate-slide-up">
+          {modules.map((m) => (
+            <Link key={m.label} href={m.href} className="card p-6 group block">
+              <div
+                style={{
+                  width: "2.75rem", height: "2.75rem", borderRadius: "14px",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  marginBottom: "1.25rem", flexShrink: 0,
+                  background: m.iconBg,
+                  boxShadow: "0 2px 8px rgba(181,115,42,0.12), inset 0 1px 0 rgba(255,255,255,0.5)",
+                  transition: "transform 0.2s ease",
+                  color: m.iconColor,
+                }}
+              >
+                <m.Icon />
               </div>
-              <h3 className="font-semibold text-slate-800 group-hover:text-indigo-600 transition-colors">{m.label}</h3>
-              <p className="text-sm text-slate-400 mt-1.5 leading-relaxed">{m.desc}</p>
+              <h3 className="font-display" style={{
+                fontSize: "1.25rem", fontWeight: 300, letterSpacing: "-0.01em",
+                color: "var(--ink-900)", marginBottom: "0.375rem",
+              }}>
+                {m.label}
+              </h3>
+              <p style={{ fontSize: "0.8125rem", color: "var(--ink-300)", lineHeight: 1.6 }}>
+                {m.desc}
+              </p>
             </Link>
           ))}
         </div>
