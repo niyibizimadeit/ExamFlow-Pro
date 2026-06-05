@@ -6,6 +6,19 @@ import Link from "next/link";
 import { getToken, decodeToken, clearToken } from "@/lib/auth";
 import api from "@/lib/api";
 import NavBar from "@/components/NavBar";
+import EmptyState from "@/components/EmptyState";
+
+const DocIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+  </svg>
+);
+
+const statusBadge = (s: string): React.CSSProperties => {
+  if (s === "PUBLISHED") return { background: "rgba(134,168,102,0.12)", color: "#4a6e30", border: "1px solid rgba(134,168,102,0.25)" };
+  if (s === "ENDED")     return { background: "rgba(168,84,56,0.10)", color: "var(--terracotta)", border: "1px solid rgba(168,84,56,0.22)" };
+  return { background: "rgba(212,180,131,0.10)", color: "var(--ink-400)", border: "1px solid rgba(212,180,131,0.25)" };
+};
 
 export default function PapersPage() {
   const router = useRouter();
@@ -18,51 +31,74 @@ export default function PapersPage() {
     const payload = decodeToken(token);
     if (!payload || payload.role !== "TEACHER") { clearToken(); router.push("/login"); return; }
     setUser({ fullName: payload.name, role: payload.role });
-    api.get("/api/papers").then(r => setPapers(r.data.data));
+    api.get("/api/papers").then(r => setPapers(r.data.data || []));
   }, [router]);
-
-  const statusStyle = (s: string) => {
-    if (s === "PUBLISHED") return "bg-emerald-50 text-emerald-700 border-emerald-200";
-    if (s === "ENDED") return "bg-red-50 text-red-700 border-red-200";
-    return "bg-slate-50 text-slate-600 border-slate-200";
-  };
 
   if (!user) return null;
 
   return (
     <>
       <NavBar fullName={user.fullName} role={user.role} />
-      <main className="p-8 max-w-5xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Exam Papers</h1>
-            <p className="text-slate-500 text-sm mt-1">{papers.length} papers</p>
-          </div>
-          <Link href="/teacher/papers/new" className="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 shadow-lg shadow-indigo-200 transition-all">Create Paper</Link>
-        </div>
+      <main className="animate-fade-in" style={{ padding: "2.5rem 2rem 5rem", maxWidth: "52rem", margin: "0 auto" }}>
 
-        <div className="space-y-3">
-          {papers.map(p => (
-            <div key={p.id} className="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-md transition-all p-5 flex items-center justify-between">
-              <div>
-                <div className="flex items-center gap-3 mb-1">
-                  <h3 className="font-semibold text-slate-800">{p.title}</h3>
-                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${statusStyle(p.status)}`}>{p.status}</span>
-                </div>
-                <p className="text-sm text-slate-400">{p.durationMins} min &middot; {p.totalScore} pts &middot; {p.questionCount} questions</p>
-              </div>
-              <div className="flex gap-2">
-                {p.status === "DRAFT" && (
-                  <Link href={`/teacher/papers/${p.id}/build`} className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 shadow-lg shadow-indigo-200 transition-all">Build</Link>
-                )}
-                {p.status !== "DRAFT" && (
-                  <Link href={`/teacher/papers/${p.id}/results`} className="px-4 py-2 rounded-xl text-xs font-medium border border-slate-200 bg-white/60 text-slate-600 hover:bg-white transition-colors">Results</Link>
-                )}
-              </div>
+        <header style={{ marginBottom: "2rem" }}>
+          <p className="section-label" style={{ marginBottom: "0.375rem" }}>Exam Management</p>
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+            <div>
+              <h1 className="page-heading" style={{ margin: 0 }}>Exam Papers</h1>
+              <p className="page-subheading">{papers.length} paper{papers.length !== 1 ? "s" : ""}</p>
             </div>
-          ))}
-          {papers.length === 0 && (
-            <div className="bg-white/50 rounded-2xl border border-slate-100 p-16 text-center text-sm text-slate-400">No papers yet. Create your first exam.</div>
+            <Link href="/teacher/papers/new" className="btn-primary">Create Paper</Link>
+          </div>
+        </header>
+
+        <div className="animate-slide-up" style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+          {papers.length > 0 ? papers.map(p => {
+            const badge = statusBadge(p.status);
+            return (
+              <div key={p.id} className="card" style={{ padding: "1.125rem 1.25rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.875rem" }}>
+                  <div style={{
+                    width: "2.25rem", height: "2.25rem", borderRadius: "11px", flexShrink: 0,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    background: "linear-gradient(135deg, rgba(212,180,131,0.22) 0%, rgba(181,115,42,0.12) 100%)",
+                    boxShadow: "0 2px 6px rgba(181,115,42,0.10), inset 0 1px 0 rgba(255,255,255,0.5)",
+                  }}>
+                    <span style={{ color: "var(--amber-accent)", display: "flex" }}><DocIcon /></span>
+                  </div>
+                  <div>
+                    <h3 className="font-display" style={{ fontSize: "1.125rem", fontWeight: 400, color: "var(--ink-900)", letterSpacing: "-0.01em", lineHeight: 1.2 }}>
+                      {p.title}
+                    </h3>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.2rem" }}>
+                      <span style={{
+                        fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase",
+                        letterSpacing: "0.06em", fontFamily: "'DM Sans', sans-serif",
+                        padding: "0.1rem 0.45rem", borderRadius: "4px", ...badge,
+                      }}>{p.status}</span>
+                      <span style={{ fontSize: "0.75rem", color: "var(--ink-300)", fontFamily: "'DM Sans', sans-serif" }}>
+                        {p.durationMins} min · {p.totalScore} pts · {p.questionCount} questions
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: "0.5rem", flexShrink: 0 }}>
+                  {p.status === "DRAFT" && (
+                    <Link href={`/teacher/papers/${p.id}/build`} className="btn-primary" style={{ fontSize: "0.75rem" }}>Build</Link>
+                  )}
+                  {p.status !== "DRAFT" && (
+                    <Link href={`/teacher/papers/${p.id}/results`} className="btn-ghost" style={{ fontSize: "0.75rem" }}>Results</Link>
+                  )}
+                </div>
+              </div>
+            );
+          }) : (
+            <div className="card">
+              <EmptyState
+                icon={<DocIcon />}
+                title="No papers yet"
+                description="Create your first exam paper to get started." />
+            </div>
           )}
         </div>
       </main>

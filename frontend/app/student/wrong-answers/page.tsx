@@ -29,32 +29,31 @@ const DocIcon = () => (
   </svg>
 );
 const XIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
     stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="9" /><path d="M15 9l-6 6m0-6l6 6" />
   </svg>
 );
-const CheckCircleIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+const CheckIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
     stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
   </svg>
 );
 const InfoIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
     stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" />
   </svg>
 );
 const ArrowIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
     stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M5 12h14M12 5l7 7-7 7" />
   </svg>
 );
 
 const stars = (d?: number) => d ? "⭐".repeat(d) : "";
-
 const typeBadge = (t: string) => {
   switch (t) {
     case "SINGLE":    return { bg: "rgba(59,130,246,0.10)",  color: "#2563eb", border: "rgba(59,130,246,0.25)" };
@@ -64,9 +63,8 @@ const typeBadge = (t: string) => {
     default:          return { bg: "rgba(212,180,131,0.10)", color: "var(--ink-500)", border: "rgba(212,180,131,0.25)" };
   }
 };
-
 const iconBox = (bg: string, shadow: string, size = "2rem") => ({
-  width: size, height: size, borderRadius: "11px", flexShrink: 0,
+  width: size, height: size, borderRadius: "10px", flexShrink: 0,
   display: "flex", alignItems: "center", justifyContent: "center",
   background: bg, boxShadow: shadow,
 } as React.CSSProperties);
@@ -126,15 +124,11 @@ export default function WrongAnswersPage() {
   return (
     <>
       <NavBar fullName={user.fullName} role={user.role} />
-      <main className="animate-fade-in" style={{ padding: "2.5rem 1.5rem 5rem", maxWidth: "56rem", margin: "0 auto" }}>
+      <main className="animate-fade-in" style={{ padding: "2.5rem 2rem 5rem", maxWidth: "44rem", margin: "0 auto" }}>
 
         {/* ── Header ── */}
-        <header style={{ marginBottom: "2.5rem" }}>
-          <p style={{
-            fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase",
-            letterSpacing: "0.14em", color: "var(--ink-300)",
-            fontFamily: "'DM Sans', sans-serif", marginBottom: "0.375rem",
-          }}>Review &amp; Improve</p>
+        <header style={{ marginBottom: "2rem" }}>
+          <p className="section-label" style={{ marginBottom: "0.375rem" }}>Review &amp; Improve</p>
           <div style={{ display: "flex", alignItems: "center", gap: "0.625rem" }}>
             <div style={iconBox(
               "linear-gradient(135deg, rgba(168,84,56,0.22) 0%, rgba(181,115,42,0.12) 100%)",
@@ -143,10 +137,10 @@ export default function WrongAnswersPage() {
               <span style={{ color: "var(--terracotta)", display: "flex" }}><BookIcon /></span>
             </div>
             <div>
-              <h1 className="font-display" style={{ fontSize: "2.25rem", fontWeight: 300, letterSpacing: "-0.02em", color: "var(--ink-900)", lineHeight: 1.1 }}>
+              <h1 className="page-heading" style={{ margin: 0 }}>
                 Wrong Answer Notebook
               </h1>
-              <p style={{ fontSize: "0.8125rem", color: "var(--ink-300)", marginTop: "0.25rem" }}>
+              <p className="page-subheading" style={{ marginTop: "0.125rem" }}>
                 {loading ? "Loading…" : `${totalCount} question${totalCount !== 1 ? "s" : ""} to review`}
               </p>
             </div>
@@ -155,7 +149,7 @@ export default function WrongAnswersPage() {
 
         {/* ── Filters ── */}
         {!loading && totalCount > 0 && (
-          <div className="animate-slide-up" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "0.5rem", marginBottom: "2rem" }}>
+          <div className="animate-slide-up" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "0.5rem", marginBottom: "1.5rem" }}>
             <select value={filterType}
               onChange={e => { setFilterType(e.target.value); fetchWrongAnswers(e.target.value, filterPaper); }}
               className="select-glass" style={{ fontSize: "0.75rem", width: "auto", paddingRight: "1.75rem" }}>
@@ -174,45 +168,47 @@ export default function WrongAnswersPage() {
               </select>
             )}
             <Link href="/student/dashboard" className="btn-ghost"
-              style={{ fontSize: "0.75rem", fontWeight: 500, color: "var(--amber-accent)", marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: "0.25rem" }}>
-              Back to Dashboard <ArrowIcon />
+              style={{ fontSize: "0.75rem", color: "var(--amber-accent)", display: "inline-flex", alignItems: "center", gap: "0.25rem", marginLeft: "auto" }}>
+              Back to Dashboard<ArrowIcon />
             </Link>
           </div>
         )}
 
         {/* ── Empty state ── */}
         {!loading && totalCount === 0 && (
-          <div className="card animate-fade-in" style={{ padding: "3.5rem 2rem", textAlign: "center" }}>
+          <div className="card animate-fade-in" style={{ padding: "3rem 2rem", textAlign: "center" }}>
             <div style={{
-              width: "3.25rem", height: "3.25rem", borderRadius: "14px",
+              width: "3rem", height: "3rem", borderRadius: "12px",
               display: "flex", alignItems: "center", justifyContent: "center",
-              margin: "0 auto 1.25rem",
+              margin: "0 auto 1rem",
               background: "linear-gradient(135deg, rgba(134,168,102,0.2) 0%, rgba(74,110,48,0.1) 100%)",
-              boxShadow: "0 3px 12px rgba(134,168,102,0.14), inset 0 1px 0 rgba(255,255,255,0.5)",
+              boxShadow: "0 2px 10px rgba(134,168,102,0.12), inset 0 1px 0 rgba(255,255,255,0.5)",
             }}>
-              <span style={{ color: "#4a6e30", display: "flex" }}><CheckCircleIcon /></span>
+              <span style={{ color: "#4a6e30", display: "flex" }}><CheckIcon /></span>
             </div>
-            <h2 className="font-display" style={{ fontSize: "1.5rem", fontWeight: 400, color: "var(--ink-700)", marginBottom: "0.375rem" }}>
+            <h2 className="font-display" style={{ fontSize: "1.375rem", fontWeight: 400, color: "var(--ink-700)", marginBottom: "0.375rem" }}>
               All clear
             </h2>
-            <p style={{ fontSize: "0.8125rem", color: "var(--ink-300)", marginBottom: "1.5rem" }}>
+            <p className="page-subheading" style={{ marginBottom: "1.25rem" }}>
               No wrong answers to review — great job!
             </p>
-            <Link href="/student/dashboard" className="btn-primary">Back to Dashboard</Link>
+            <Link href="/student/dashboard" className="btn-primary" style={{ fontSize: "0.8125rem", padding: "0.5rem 1rem" }}>
+              Back to Dashboard
+            </Link>
           </div>
         )}
 
         {/* ── Loading ── */}
         {loading && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.625rem" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="card animate-pulse" style={{ padding: "1.25rem" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.75rem" }}>
-                  <div style={{ height: "0.75rem", width: "4rem", borderRadius: "6px", background: "var(--ink-100)" }} />
-                  <div style={{ height: "0.75rem", width: "3rem", borderRadius: "6px", background: "var(--ink-100)" }} />
+              <div key={i} className="card animate-pulse" style={{ padding: "1.125rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.625rem" }}>
+                  <div style={{ height: "0.625rem", width: "4rem", borderRadius: "6px", background: "var(--ink-100)" }} />
+                  <div style={{ height: "0.625rem", width: "3rem", borderRadius: "6px", background: "var(--ink-100)" }} />
                 </div>
-                <div style={{ height: "1.25rem", width: "75%", borderRadius: "6px", marginBottom: "0.75rem", background: "rgba(212,180,131,0.2)" }} />
-                <div style={{ height: "3rem", borderRadius: "10px", background: "rgba(212,180,131,0.12)" }} />
+                <div style={{ height: "1rem", width: "75%", borderRadius: "6px", marginBottom: "0.625rem", background: "rgba(212,180,131,0.2)" }} />
+                <div style={{ height: "2.5rem", borderRadius: "10px", background: "rgba(212,180,131,0.12)" }} />
               </div>
             ))}
           </div>
@@ -220,13 +216,13 @@ export default function WrongAnswersPage() {
 
         {/* ── Grouped by paper ── */}
         {!loading && totalCount > 0 && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "2.5rem" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
             {Object.entries(groupedByPaper).map(([paperTitle, items]) => (
               <section key={paperTitle}>
                 {/* Paper group header */}
-                <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", marginBottom: "1.125rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.875rem" }}>
                   <div style={iconBox(
-                    "linear-gradient(135deg, rgba(168,84,56,0.2) 0%, rgba(168,84,56,0.09) 100%)",
+                    "linear-gradient(135deg, rgba(168,84,56,0.18) 0%, rgba(168,84,56,0.08) 100%)",
                     "0 1px 4px rgba(168,84,56,0.10), inset 0 1px 0 rgba(255,255,255,0.45)",
                   )}>
                     <span style={{ color: "var(--terracotta)", display: "flex" }}><DocIcon /></span>
@@ -248,66 +244,66 @@ export default function WrongAnswersPage() {
                     return (
                       <div key={`${a.questionId}-${a.sessionId || i}`}
                         className="card animate-slide-up"
-                        style={{ padding: "1.125rem 1.25rem", animationDelay: `${i * 35}ms`, borderLeft: "3px solid var(--terracotta)", borderRadius: "10px 14px 14px 10px" }}>
+                        style={{ padding: "1rem 1.125rem", animationDelay: `${i * 35}ms`, borderLeft: "3px solid var(--terracotta)", borderRadius: "10px 14px 14px 10px" }}>
 
                         {/* Top row */}
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.75rem", flexWrap: "wrap" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.375rem", marginBottom: "0.625rem", flexWrap: "wrap" }}>
                           <span style={{
-                            fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase",
+                            fontSize: "0.625rem", fontWeight: 600, textTransform: "uppercase",
                             letterSpacing: "0.08em", fontFamily: "'DM Sans', sans-serif",
-                            padding: "0.15rem 0.5rem", borderRadius: "5px",
+                            padding: "0.1rem 0.4rem", borderRadius: "4px",
                             background: badge.bg, color: badge.color, border: `1px solid ${badge.border}`,
                           }}>{a.questionType}</span>
-                          {a.difficulty && <span style={{ fontSize: "0.75rem" }} title={`Difficulty ${a.difficulty}`}>{stars(a.difficulty)}</span>}
+                          {a.difficulty && <span style={{ fontSize: "0.6875rem" }}>{stars(a.difficulty)}</span>}
                           {a.categoryName && <span style={{ fontSize: "0.6875rem", color: "var(--ink-300)", fontStyle: "italic", fontFamily: "'DM Sans', sans-serif" }}>{a.categoryName}</span>}
                           <span style={{ fontSize: "0.6875rem", color: "var(--ink-300)", marginLeft: "auto", fontFamily: "'DM Sans', sans-serif" }}>{a.scoreEarned}/{a.maxScore} pts</span>
                         </div>
 
                         {/* Question */}
-                        <p style={{ fontSize: "0.875rem", color: "var(--ink-900)", marginBottom: "0.75rem", lineHeight: 1.5 }}>{a.questionContent}</p>
+                        <p style={{ fontSize: "0.875rem", color: "var(--ink-900)", marginBottom: "0.625rem", lineHeight: 1.5 }}>{a.questionContent}</p>
 
                         {/* Answer comparison */}
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem", fontSize: "0.8125rem" }}>
-                          <div style={{ background: "rgba(168,84,56,0.05)", borderRadius: "10px", padding: "0.625rem 0.75rem", border: "1px solid rgba(168,84,56,0.12)" }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "0.375rem", marginBottom: "0.25rem" }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.375rem", fontSize: "0.75rem" }}>
+                          <div style={{ background: "rgba(168,84,56,0.05)", borderRadius: "8px", padding: "0.5rem 0.625rem", border: "1px solid rgba(168,84,56,0.12)" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.25rem", marginBottom: "0.125rem" }}>
                               <span style={{ color: "var(--terracotta)", display: "flex" }}><XIcon /></span>
-                              <span style={{ fontWeight: 600, fontSize: "0.625rem", color: "var(--terracotta)", textTransform: "uppercase", letterSpacing: "0.06em", fontFamily: "'DM Sans', sans-serif" }}>Your answer</span>
+                              <span style={{ fontWeight: 600, fontSize: "0.5625rem", color: "var(--terracotta)", textTransform: "uppercase", letterSpacing: "0.06em", fontFamily: "'DM Sans', sans-serif" }}>Your answer</span>
                             </div>
-                            <span style={{ fontWeight: 500, color: "var(--terracotta)", fontSize: "0.8125rem" }}>{a.answerGiven || "(unanswered)"}</span>
+                            <span style={{ fontWeight: 500, color: "var(--terracotta)", fontSize: "0.75rem" }}>{a.answerGiven || "(unanswered)"}</span>
                           </div>
-                          <div style={{ background: "rgba(134,168,102,0.05)", borderRadius: "10px", padding: "0.625rem 0.75rem", border: "1px solid rgba(134,168,102,0.14)" }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "0.375rem", marginBottom: "0.25rem" }}>
-                              <span style={{ color: "#4a6e30", display: "flex" }}><CheckCircleIcon /></span>
-                              <span style={{ fontWeight: 600, fontSize: "0.625rem", color: "#4a6e30", textTransform: "uppercase", letterSpacing: "0.06em", fontFamily: "'DM Sans', sans-serif" }}>Correct</span>
+                          <div style={{ background: "rgba(134,168,102,0.05)", borderRadius: "8px", padding: "0.5rem 0.625rem", border: "1px solid rgba(134,168,102,0.14)" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.25rem", marginBottom: "0.125rem" }}>
+                              <span style={{ color: "#4a6e30", display: "flex" }}><CheckIcon /></span>
+                              <span style={{ fontWeight: 600, fontSize: "0.5625rem", color: "#4a6e30", textTransform: "uppercase", letterSpacing: "0.06em", fontFamily: "'DM Sans', sans-serif" }}>Correct</span>
                             </div>
-                            <span style={{ fontWeight: 500, color: "#4a6e30", fontSize: "0.8125rem" }}>{a.correctAnswer}</span>
+                            <span style={{ fontWeight: 500, color: "#4a6e30", fontSize: "0.75rem" }}>{a.correctAnswer}</span>
                           </div>
                         </div>
 
                         {/* Explanation */}
                         {a.explanation && (
-                          <details style={{ marginTop: "0.75rem" }}>
+                          <details style={{ marginTop: "0.625rem" }}>
                             <summary style={{
-                              fontSize: "0.75rem", fontWeight: 500, color: "var(--amber-accent)",
+                              fontSize: "0.6875rem", fontWeight: 500, color: "var(--amber-accent)",
                               cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
                               display: "inline-flex", alignItems: "center", gap: "0.25rem",
                             }}>
                               <InfoIcon /> Explanation
                             </summary>
                             <p style={{
-                              fontSize: "0.75rem", color: "var(--ink-500)", marginTop: "0.5rem",
-                              padding: "0.75rem 0.875rem", background: "rgba(181,115,42,0.04)",
-                              borderRadius: "10px", lineHeight: 1.6, border: "1px solid rgba(212,180,131,0.15)",
+                              fontSize: "0.75rem", color: "var(--ink-500)", marginTop: "0.375rem",
+                              padding: "0.625rem 0.75rem", background: "rgba(181,115,42,0.04)",
+                              borderRadius: "8px", lineHeight: 1.6, border: "1px solid rgba(212,180,131,0.15)",
                             }}>{a.explanation}</p>
                           </details>
                         )}
 
                         {/* Result link */}
                         {a.sessionId && (
-                          <div style={{ marginTop: "0.75rem" }}>
+                          <div style={{ marginTop: "0.625rem" }}>
                             <Link href={`/student/results/${a.sessionId}`} className="btn-ghost"
-                              style={{ fontSize: "0.75rem", fontWeight: 500, color: "var(--amber-accent)", display: "inline-flex", alignItems: "center", gap: "0.25rem", padding: "0.25rem 0.5rem" }}>
-                              View full result <ArrowIcon />
+                              style={{ fontSize: "0.6875rem", fontWeight: 500, color: "var(--amber-accent)", display: "inline-flex", alignItems: "center", gap: "0.25rem", padding: "0.125rem 0.25rem" }}>
+                              View full result<ArrowIcon />
                             </Link>
                           </div>
                         )}

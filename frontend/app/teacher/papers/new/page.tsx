@@ -7,6 +7,13 @@ import api from "@/lib/api";
 import NavBar from "@/components/NavBar";
 import Toast from "@/components/Toast";
 
+const labelStyle: React.CSSProperties = {
+  display: "block", fontSize: "0.6875rem", fontWeight: 600,
+  textTransform: "uppercase", letterSpacing: "0.10em",
+  color: "var(--ink-400)", marginBottom: "0.5rem",
+  fontFamily: "'DM Sans', sans-serif",
+};
+
 export default function NewPaperPage() {
   const router = useRouter();
   const [user, setUser] = useState<{ fullName: string; role: string } | null>(null);
@@ -47,27 +54,33 @@ export default function NewPaperPage() {
   return (
     <>
       <NavBar fullName={user.fullName} role={user.role} />
-      <main className="p-8 max-w-2xl mx-auto">
-        <h1 className="page-heading mb-8">Create Exam Paper</h1>
-        <form onSubmit={handleSubmit} className="glass p-6 space-y-4">
+      <main className="animate-fade-in" style={{ padding: "2.5rem 2rem 5rem", maxWidth: "44rem", margin: "0 auto" }}>
+        <header style={{ marginBottom: "2rem" }}>
+          <p className="section-label" style={{ marginBottom: "0.375rem" }}>Exam Management</p>
+          <h1 className="page-heading" style={{ margin: 0 }}>Create Exam Paper</h1>
+        </header>
+
+        <form onSubmit={handleSubmit} className="card" style={{ padding: "1.5rem 1.75rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
           <div>
-            <label className="block text-sm font-medium text-slate-600 mb-1.5">Title</label>
-            <input value={title} onChange={e => setTitle(e.target.value)} required className="input-glass" placeholder="e.g. Java Midterm Examination" />
+            <label style={labelStyle}>Title</label>
+            <input value={title} onChange={e => setTitle(e.target.value)} required className="input-glass" placeholder="e.g. Java Midterm Examination" style={{ width: "100%", boxSizing: "border-box" }} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-600 mb-1.5">Description</label>
-            <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} className="input-glass" placeholder="Optional description..." />
+            <label style={labelStyle}>Description</label>
+            <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} className="input-glass" placeholder="Optional description…" style={{ width: "100%", boxSizing: "border-box" }} />
           </div>
-          <div className="grid grid-cols-3 gap-4">
-            <div><label className="block text-sm font-medium text-slate-600 mb-1.5">Duration (min)</label><input type="number" value={durationMins} onChange={e => setDurationMins(e.target.value)} required className="input-glass" /></div>
-            <div><label className="block text-sm font-medium text-slate-600 mb-1.5">Total Score</label><input type="number" value={totalScore} onChange={e => setTotalScore(e.target.value)} required className="input-glass" /></div>
-            <div><label className="block text-sm font-medium text-slate-600 mb-1.5">Pass Score</label><input type="number" value={passScore} onChange={e => setPassScore(e.target.value)} required className="input-glass" /></div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1rem" }}>
+            <div><label style={labelStyle}>Duration (min)</label><input type="number" value={durationMins} onChange={e => setDurationMins(e.target.value)} required className="input-glass" /></div>
+            <div><label style={labelStyle}>Total Score</label><input type="number" value={totalScore} onChange={e => setTotalScore(e.target.value)} required className="input-glass" /></div>
+            <div><label style={labelStyle}>Pass Score</label><input type="number" value={passScore} onChange={e => setPassScore(e.target.value)} required className="input-glass" /></div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div><label className="block text-sm font-medium text-slate-600 mb-1.5">Start Time</label><input type="datetime-local" value={startTime} onChange={e => setStartTime(e.target.value)} className="input-glass" /></div>
-            <div><label className="block text-sm font-medium text-slate-600 mb-1.5">End Time</label><input type="datetime-local" value={endTime} onChange={e => setEndTime(e.target.value)} className="input-glass" /></div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+            <div><label style={labelStyle}>Start Time</label><input type="datetime-local" value={startTime} onChange={e => setStartTime(e.target.value)} className="input-glass" /></div>
+            <div><label style={labelStyle}>End Time</label><input type="datetime-local" value={endTime} onChange={e => setEndTime(e.target.value)} className="input-glass" /></div>
           </div>
-          <button type="submit" disabled={saving} className="btn-primary w-full">{saving ? "Creating..." : "Create and Build Paper"}</button>
+          <button type="submit" disabled={saving} className="btn-primary" style={{ width: "100%" }}>
+            {saving ? "Creating…" : "Create and Build Paper"}
+          </button>
         </form>
       </main>
       {toast && <Toast message={toast.msg} type={toast.type} onClose={() => setToast(null)} />}

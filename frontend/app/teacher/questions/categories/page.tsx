@@ -5,6 +5,14 @@ import { useRouter } from "next/navigation";
 import { getToken, decodeToken, clearToken } from "@/lib/auth";
 import api from "@/lib/api";
 import NavBar from "@/components/NavBar";
+import Toast from "@/components/Toast";
+
+const labelStyle: React.CSSProperties = {
+  display: "block", fontSize: "0.6875rem", fontWeight: 600,
+  textTransform: "uppercase", letterSpacing: "0.10em",
+  color: "var(--ink-400)", marginBottom: "0.375rem",
+  fontFamily: "'DM Sans', sans-serif",
+};
 
 export default function CategoriesPage() {
   const router = useRouter();
@@ -12,7 +20,8 @@ export default function CategoriesPage() {
   const [categories, setCategories] = useState<{ id: number; name: string; description: string }[]>([]);
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
-  const [toast, setToast] = useState("");
+  const [adding, setAdding] = useState(false);
+  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
   useEffect(() => {
     const token = getToken();
@@ -20,57 +29,77 @@ export default function CategoriesPage() {
     const p = decodeToken(token);
     if (!p || p.role !== "TEACHER") { clearToken(); router.push("/login"); return; }
     setUser({ fullName: p.name, role: p.role });
-    api.get("/api/categories").then(r => setCategories(r.data.data));
+    api.get("/api/categories").then(r => setCategories(r.data.data || []));
   }, [router]);
 
   async function create(e: React.FormEvent) {
-    e.preventDefault();
-    try { await api.post("/api/categories", { name, description: desc }); setName(""); setDesc(""); setToast("Created"); api.get("/api/categories").then(r => setCategories(r.data.data)); }
-    catch { setToast("Failed"); }
-  }
-  async function del(id: number) {
-    if (!confirm("Delete?")) return;
-    try { await api.delete(`/api/categories/${id}`); setToast("Deleted"); api.get("/api/categories").then(r => setCategories(r.data.data)); }
-    catch { setToast("Cannot delete"); }
+    e.preventDefault(); setAdding(true);
+    try {
+      await api.post("/api/categories", { name, description: desc });
+      setName(""); setDesc("");
+      setToast({ msg: "Category created", type: "success" });
+      api.get("/api/categories").then(r => setCategories(r.data.data || []));
+    } catch { setToast({ msg: "Failed to create", type: "error" }); }
+    finally { setAdding(false); }
   }
 
-  const inp = "w-full px-3 py-2 rounded-xl border border-slate-200 bg-white/60 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all";
+  async function del(cid: number) {
+    if (!confirm("Delete this category?")) return;
+    try { await api.delete(`/api/categories/${cid}`); setToast({ msg: "Deleted", type: "success" }); api.get("/api/categories").then(r => setCategories(r.data.data || [])); }
+    catch { setToast({ msg: "Cannot delete: category may be in use", type: "error" }); }
+  }
 
   if (!user) return null;
 
   return (
     <>
       <NavBar fullName={user.fullName} role={user.role} />
-      <main className="p-8 max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold text-slate-800 tracking-tight mb-6">Category Management</h1>
+      <main className="animate-fade-in" style={{ padding: "2.5rem 2rem 5rem", maxWidth: "44rem", margin: "0 auto" }}>
+        <header style={{ marginBottom: "2rem" }}>
+          <p className="section-label" style={{ marginBottom: "0.375rem" }}>Question Bank</p>
+          <h1 className="page-heading" style={{ margin: 0 }}>Category Management</h1>
+        </header>
 
-        <form onSubmit={create} className="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-sm p-4 mb-6 flex gap-3 items-end">
-          <div className="flex-1">
-            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Name</label>
-            <input value={name} onChange={e => setName(e.target.value)} required className={inp} placeholder="e.g. Data Structures" />
+        <form onSubmit={create} className="card animate-slide-up" style={{ padding: "1.25rem", display: "flex", gap: "0.75rem", alignItems: "flex-end", marginBottom: "1.5rem" }}>
+          <div style={{ flex: 1 }}>
+            <label style={labelStyle}>Name</label>
+            <input value={name} onChange={e => setName(e.target.value)} required className="input-glass" placeholder="e.g. Data Structures" />
           </div>
-          <div className="flex-1">
-            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Description</label>
-            <input value={desc} onChange={e => setDesc(e.target.value)} className={inp} placeholder="Optional" />
+          <div style={{ flex: 1 }}>
+            <label style={labelStyle}>Description</label>
+            <input value={desc} onChange={e => setDesc(e.target.value)} className="input-glass" placeholder="Optional" />
           </div>
-          <button type="submit" className="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 shadow-lg shadow-indigo-200 transition-all shrink-0">Create</button>
+          <button type="submit" disabled={adding} className="btn-primary" style={{ flexShrink: 0 }}>
+            {adding ? "Creating…" : "Create"}
+          </button>
         </form>
 
-        <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-sm divide-y divide-slate-100">
-          {categories.map(c => (
-            <div key={c.id} className="flex items-center justify-between px-5 py-3.5">
-              <div>
-                <p className="text-sm font-medium text-slate-800">{c.name}</p>
-                {c.description && <p className="text-xs text-slate-400 mt-0.5">{c.description}</p>}
+        <div className="card animate-slide-up" style={{ overflow: "hidden" }}>
+          {categories.length > 0 ? (
+            categories.map(c => (
+              <div key={c.id} style={{
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                padding: "0.875rem 1.25rem",
+                borderBottom: "1px solid rgba(212,180,131,0.1)",
+              }}>
+                <div>
+                  <p style={{ fontSize: "0.875rem", fontWeight: 500, color: "var(--ink-700)", fontFamily: "'DM Sans', sans-serif" }}>{c.name}</p>
+                  {c.description && <p style={{ fontSize: "0.75rem", color: "var(--ink-300)", marginTop: "0.125rem", fontFamily: "'DM Sans', sans-serif" }}>{c.description}</p>}
+                </div>
+                <button onClick={() => del(c.id)}
+                  style={{ fontSize: "0.75rem", fontWeight: 500, color: "var(--ink-300)", background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}
+                  onMouseEnter={e => (e.currentTarget.style.color = "var(--terracotta)")}
+                  onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-300)")}>Delete</button>
               </div>
-              <button onClick={() => del(c.id)} className="text-xs text-slate-400 hover:text-red-500 transition-colors">Delete</button>
+            ))
+          ) : (
+            <div style={{ padding: "3rem", textAlign: "center", fontSize: "0.8125rem", color: "var(--ink-300)", fontFamily: "'DM Sans', sans-serif" }}>
+              No categories yet. Create one above.
             </div>
-          ))}
-          {categories.length === 0 && <p className="px-5 py-12 text-center text-sm text-slate-400">No categories yet.</p>}
+          )}
         </div>
-
-        {toast && <div className="fixed bottom-6 right-6 bg-white border border-slate-200 shadow-xl rounded-xl px-4 py-3 text-sm text-slate-700 z-50">{toast}<button onClick={() => setToast("")} className="ml-3 text-slate-400 hover:text-slate-600">x</button></div>}
       </main>
+      {toast && <Toast message={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
     </>
   );
 }

@@ -10,6 +10,13 @@ import Toast from "@/components/Toast";
 interface Option { label: string; content: string; isCorrect: boolean; }
 interface StdAns { answerText: string; matchMode: string; }
 
+const labelStyle: React.CSSProperties = {
+  display: "block", fontSize: "0.6875rem", fontWeight: 600,
+  textTransform: "uppercase", letterSpacing: "0.10em",
+  color: "var(--ink-400)", marginBottom: "0.5rem",
+  fontFamily: "'DM Sans', sans-serif",
+};
+
 export default function EditQuestionPage() {
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
@@ -37,7 +44,7 @@ export default function EditQuestionPage() {
 
     Promise.all([
       api.get("/api/categories"),
-      api.get(`/api/questions/${id}`)
+      api.get(`/api/questions/${id}`),
     ]).then(([catRes, qRes]) => {
       setCategories(catRes.data.data);
       const q = qRes.data.data;
@@ -47,127 +54,135 @@ export default function EditQuestionPage() {
       setDefaultScore(String(q.defaultScore));
       setExplanation(q.explanation || "");
       setCategoryId(String(q.categoryId));
-      if (q.options?.length) {
-        setOptions(q.options.map((o: Record<string, unknown>) => ({ label: o.label as string, content: o.content as string, isCorrect: o.isCorrect as boolean })));
-      }
-      if (q.stdAnswers?.length) {
-        setStdAnswers(q.stdAnswers.map((a: Record<string, unknown>) => ({ answerText: a.answerText as string, matchMode: a.matchMode as string })));
-      }
+      if (q.options?.length) setOptions(q.options.map((o: Record<string, unknown>) => ({ label: o.label as string, content: o.content as string, isCorrect: o.isCorrect as boolean })));
+      if (q.stdAnswers?.length) setStdAnswers(q.stdAnswers.map((a: Record<string, unknown>) => ({ answerText: a.answerText as string, matchMode: a.matchMode as string })));
       setLoading(false);
     });
   }, [id, router]);
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setSaving(true);
+    e.preventDefault(); setSaving(true);
     try {
       const body: Record<string, unknown> = { content, type, difficulty, defaultScore: parseFloat(defaultScore) || 2, explanation, categoryId: parseInt(categoryId) };
-      if (["SINGLE", "MULTIPLE", "TRUEFALSE"].includes(type)) {
-        body.options = options.filter(o => o.content.trim());
-      }
-      if (type === "FILL") {
-        body.stdAnswers = stdAnswers.filter(a => a.answerText.trim());
-      }
+      if (["SINGLE", "MULTIPLE", "TRUEFALSE"].includes(type)) body.options = options.filter(o => o.content.trim());
+      if (type === "FILL") body.stdAnswers = stdAnswers.filter(a => a.answerText.trim());
       await api.put(`/api/questions/${id}`, body);
-      setToast({ msg: "Question updated!", type: "success" });
+      setToast({ msg: "Question updated", type: "success" });
       setTimeout(() => router.push("/teacher/questions"), 800);
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to update";
-      setToast({ msg, type: "error" });
-    } finally {
-      setSaving(false);
-    }
+      setToast({ msg: (err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed", type: "error" });
+    } finally { setSaving(false); }
   }
 
-  if (!user || loading) return <div className="p-8 text-gray-500">Loading…</div>;
+  if (!user || loading) return (
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink-300)", fontFamily: "'DM Sans', sans-serif" }}>Loading…</div>
+  );
 
   return (
     <>
       <NavBar fullName={user.fullName} role={user.role} />
-      <main className="p-6 max-w-3xl mx-auto">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">Edit Question #{id}</h1>
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border p-6 space-y-5">
+      <main className="animate-fade-in" style={{ padding: "2.5rem 2rem 5rem", maxWidth: "44rem", margin: "0 auto" }}>
+        <header style={{ marginBottom: "2rem" }}>
+          <p className="section-label" style={{ marginBottom: "0.375rem" }}>Question Bank</p>
+          <h1 className="page-heading" style={{ margin: 0 }}>Edit Question #{id}</h1>
+        </header>
+
+        <form onSubmit={handleSubmit} className="card" style={{ padding: "1.5rem 1.75rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Question Type</label>
-            <select value={type} onChange={e => setType(e.target.value)} className="border rounded-lg px-3 py-2 text-sm w-full">
-              <option value="SINGLE">Single Choice</option>
-              <option value="MULTIPLE">Multiple Choice</option>
-              <option value="TRUEFALSE">True/False</option>
-              <option value="FILL">Fill-in-Blank</option>
+            <label style={labelStyle}>Question Type</label>
+            <select value={type} onChange={e => setType(e.target.value)} className="select-glass">
+              <option value="SINGLE">Single Choice</option><option value="MULTIPLE">Multiple Choice</option><option value="TRUEFALSE">True / False</option><option value="FILL">Fill in Blank</option>
             </select>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-              <select value={categoryId} onChange={e => setCategoryId(e.target.value)} className="border rounded-lg px-3 py-2 text-sm w-full">
+              <label style={labelStyle}>Category</label>
+              <select value={categoryId} onChange={e => setCategoryId(e.target.value)} required className="select-glass">
                 <option value="">Select category</option>
                 {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Difficulty</label>
-              <select value={difficulty} onChange={e => setDifficulty(parseInt(e.target.value))} className="border rounded-lg px-3 py-2 text-sm w-full">
-                <option value={1}>⭐ Easy</option>
-                <option value={2}>⭐⭐ Medium</option>
-                <option value={3}>⭐⭐⭐ Hard</option>
+              <label style={labelStyle}>Difficulty</label>
+              <select value={difficulty} onChange={e => setDifficulty(parseInt(e.target.value))} className="select-glass">
+                <option value={1}>⭐ Easy</option><option value={2}>⭐⭐ Medium</option><option value={3}>⭐⭐⭐ Hard</option>
               </select>
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Question Content</label>
-            <textarea value={content} onChange={e => setContent(e.target.value)} rows={3} required className="border rounded-lg px-3 py-2 text-sm w-full" />
+            <label style={labelStyle}>Question Content</label>
+            <textarea value={content} onChange={e => setContent(e.target.value)} rows={3} required className="input-glass" style={{ width: "100%", boxSizing: "border-box" }} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Default Score</label>
-            <input type="number" value={defaultScore} onChange={e => setDefaultScore(e.target.value)} step="0.5" min="0.5" className="border rounded-lg px-3 py-2 text-sm w-32" />
+            <label style={labelStyle}>Default Score</label>
+            <input type="number" value={defaultScore} onChange={e => setDefaultScore(e.target.value)} step="0.5" min="0.5" className="input-glass" style={{ width: "6rem" }} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Explanation</label>
-            <textarea value={explanation} onChange={e => setExplanation(e.target.value)} rows={2} className="border rounded-lg px-3 py-2 text-sm w-full" />
+            <label style={labelStyle}>Explanation</label>
+            <textarea value={explanation} onChange={e => setExplanation(e.target.value)} rows={2} className="input-glass" placeholder="Explain the correct answer…" style={{ width: "100%", boxSizing: "border-box" }} />
           </div>
+
           {["SINGLE", "MULTIPLE", "TRUEFALSE"].includes(type) && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-gray-700">Options</label>
-                {type !== "TRUEFALSE" && <button type="button" onClick={() => setOptions([...options, { label: String.fromCharCode(65 + options.length), content: "", isCorrect: false }])} className="text-xs font-medium text-indigo-500 hover:text-indigo-600">Add Option</button>}
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <label style={{ ...labelStyle, marginBottom: 0 }}>Options</label>
+                {type !== "TRUEFALSE" && (
+                  <button type="button" onClick={() => setOptions([...options, { label: String.fromCharCode(65 + options.length), content: "", isCorrect: false }])}
+                    style={{ fontSize: "0.75rem", fontWeight: 500, color: "var(--amber-accent)", background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>
+                    + Add Option
+                  </button>
+                )}
               </div>
               {options.map((opt, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <span className="text-sm font-bold text-gray-400 w-6">{opt.label}</span>
-                  <input value={opt.content} onChange={e => { const o = [...options]; o[i].content = e.target.value; setOptions(o); }} className="border rounded-lg px-3 py-2 text-sm flex-1" />
-                  <label className="flex items-center gap-1 text-xs text-gray-500">
-                    <input type={type === "MULTIPLE" ? "checkbox" : "radio"} name="correct" checked={opt.isCorrect} onChange={() => {
-                      const o = [...options];
-                      if (type === "MULTIPLE") o[i].isCorrect = !o[i].isCorrect;
-                      else o.forEach((x, j) => x.isCorrect = j === i);
-                      setOptions(o);
-                    }} /> Correct
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: "0.625rem" }}>
+                  <span style={{ fontSize: "0.8125rem", fontWeight: 600, color: "var(--ink-400)", width: "1.5rem", fontFamily: "'DM Sans', sans-serif" }}>{opt.label}</span>
+                  <input value={opt.content} onChange={e => { const o = [...options]; o[i].content = e.target.value; setOptions(o); }}
+                    placeholder={`Option ${opt.label}`} className="input-glass" style={{ flex: 1 }} />
+                  <label style={{ display: "flex", alignItems: "center", gap: "0.375rem", fontSize: "0.75rem", color: "var(--ink-500)", fontFamily: "'DM Sans', sans-serif", cursor: "pointer" }}>
+                    <input type={type === "MULTIPLE" ? "checkbox" : "radio"} name="correct" checked={opt.isCorrect}
+                      onChange={() => { const o = [...options]; if (type === "MULTIPLE") o[i].isCorrect = !o[i].isCorrect; else o.forEach((x, j) => x.isCorrect = j === i); setOptions(o); }}
+                      style={{ accentColor: "var(--amber-accent)" }} /> Correct
                   </label>
-                  {options.length > 2 && <button type="button" onClick={() => { setOptions(options.filter((_, j) => j !== i).map((o, j) => ({ ...o, label: String.fromCharCode(65 + j) }))); }} className="text-gray-400 hover:text-red-500 text-xs">Remove</button>}
+                  {options.length > 2 && (
+                    <button type="button" onClick={() => { setOptions(options.filter((_, j) => j !== i).map((o, j) => ({ ...o, label: String.fromCharCode(65 + j) }))); }}
+                      style={{ fontSize: "0.75rem", color: "var(--ink-300)", background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}
+                      onMouseEnter={e => (e.currentTarget.style.color = "var(--terracotta)")}
+                      onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-300)")}>Remove</button>
+                  )}
                 </div>
               ))}
             </div>
           )}
+
           {type === "FILL" && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-gray-700">Standard Answers</label>
-                <button type="button" onClick={() => setStdAnswers([...stdAnswers, { answerText: "", matchMode: "CASE_INSENSITIVE" }])} className="text-xs font-medium text-indigo-500 hover:text-indigo-600">Add Answer</button>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <label style={{ ...labelStyle, marginBottom: 0 }}>Standard Answers</label>
+                <button type="button" onClick={() => setStdAnswers([...stdAnswers, { answerText: "", matchMode: "CASE_INSENSITIVE" }])}
+                  style={{ fontSize: "0.75rem", fontWeight: 500, color: "var(--amber-accent)", background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>
+                  + Add Answer
+                </button>
               </div>
               {stdAnswers.map((ans, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <input value={ans.answerText} onChange={e => { const a = [...stdAnswers]; a[i].answerText = e.target.value; setStdAnswers(a); }} className="border rounded-lg px-3 py-2 text-sm flex-1" />
-                  <select value={ans.matchMode} onChange={e => { const a = [...stdAnswers]; a[i].matchMode = e.target.value; setStdAnswers(a); }} className="border rounded-lg px-2 py-2 text-xs w-36">
-                    <option value="CASE_INSENSITIVE">Case Insensitive</option>
-                    <option value="EXACT">Exact Match</option>
-                    <option value="CONTAINS">Contains</option>
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: "0.625rem" }}>
+                  <input value={ans.answerText} onChange={e => { const a = [...stdAnswers]; a[i].answerText = e.target.value; setStdAnswers(a); }}
+                    placeholder="Correct answer" className="input-glass" style={{ flex: 1 }} />
+                  <select value={ans.matchMode} onChange={e => { const a = [...stdAnswers]; a[i].matchMode = e.target.value; setStdAnswers(a); }}
+                    className="select-glass" style={{ width: "auto", fontSize: "0.75rem" }}>
+                    <option value="CASE_INSENSITIVE">Case Insensitive</option><option value="EXACT">Exact</option><option value="CONTAINS">Contains</option>
                   </select>
-                  {stdAnswers.length > 1 && <button type="button" onClick={() => setStdAnswers(stdAnswers.filter((_, j) => j !== i))} className="text-gray-400 hover:text-red-500 text-xs">Remove</button>}
+                  {stdAnswers.length > 1 && (
+                    <button type="button" onClick={() => setStdAnswers(stdAnswers.filter((_, j) => j !== i))}
+                      style={{ fontSize: "0.75rem", color: "var(--ink-300)", background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}
+                      onMouseEnter={e => (e.currentTarget.style.color = "var(--terracotta)")}
+                      onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-300)")}>Remove</button>
+                  )}
                 </div>
               ))}
             </div>
           )}
-          <button type="submit" disabled={saving} className="w-full bg-blue-600 text-white font-semibold py-2.5 rounded-lg hover:bg-blue-700 transition disabled:opacity-50">
+
+          <button type="submit" disabled={saving} className="btn-primary" style={{ width: "100%" }}>
             {saving ? "Saving…" : "Update Question"}
           </button>
         </form>
