@@ -24,6 +24,39 @@ type WrongAnswer = {
   difficulty?: number;
 };
 
+/* ── Inline SVG icons ── */
+
+const IconXCircle = () => (
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <circle cx="12" cy="12" r="9" />
+    <path d="M15 9l-6 6m0-6l6 6" />
+  </svg>
+);
+
+const IconArrowRight = () => (
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M5 12h14M12 5l7 7-7 7" />
+  </svg>
+);
+
 const difficultyStars = (d?: number) =>
   d ? "⭐".repeat(d) : "";
 
@@ -67,7 +100,6 @@ export default function WrongAnswersPage() {
           setAllWrong(data.answers);
           setTotalCount(data.totalCount ?? data.answers.length);
         } else if (Array.isArray(data)) {
-          // fallback for old API format
           setAllWrong(data);
           setTotalCount(data.length);
         }
@@ -76,7 +108,6 @@ export default function WrongAnswersPage() {
       .finally(() => setLoading(false));
   };
 
-  // Derive available papers from data
   const paperOptions = useMemo(() => {
     const seen = new Map<number, string>();
     allWrong.forEach(a => {
@@ -85,7 +116,6 @@ export default function WrongAnswersPage() {
     return Array.from(seen.entries());
   }, [allWrong]);
 
-  // Group by paper for the grouped view
   const groupedByPaper = useMemo(() => {
     const groups: Record<string, WrongAnswer[]> = {};
     allWrong.forEach(a => {
@@ -106,25 +136,46 @@ export default function WrongAnswersPage() {
         style={{ paddingBottom: "4rem" }}
       >
 
-        {/* ── Header ── */}
+        {/* ── Page header ── */}
         <div className="mb-10">
           <p
             className="text-xs font-semibold uppercase tracking-[0.16em] mb-2"
             style={{ color: "var(--ink-300)", fontFamily: "'DM Sans', sans-serif" }}
           >
-            Review & Improve
+            Review &amp; Improve
           </p>
-          <h1 className="font-display text-4xl font-light tracking-tight" style={{ color: "var(--ink-900)", lineHeight: 1.15 }}>
-            Wrong Answer Notebook
-          </h1>
-          <p className="text-sm mt-2" style={{ color: "var(--ink-300)" }}>
-            {loading ? "Loading..." : `${totalCount} question${totalCount !== 1 ? "s" : ""} to review`}
-          </p>
+          <div className="flex items-center gap-3">
+            <div
+              className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+              style={{
+                background: "linear-gradient(135deg, rgba(168,84,56,0.22) 0%, rgba(181,115,42,0.12) 100%)",
+                boxShadow: "0 1px 4px rgba(168,84,56,0.14), inset 0 1px 0 rgba(255,255,255,0.45)",
+              }}
+            >
+              <span style={{ color: "var(--terracotta)" }}>
+                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={1.5}
+                  strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                  <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+              </span>
+            </div>
+            <div>
+              <h1
+                className="font-display text-4xl font-light tracking-tight"
+                style={{ color: "var(--ink-900)", lineHeight: 1.15 }}
+              >
+                Wrong Answer Notebook
+              </h1>
+              <p className="text-sm mt-1" style={{ color: "var(--ink-300)" }}>
+                {loading ? "Loading..." : `${totalCount} question${totalCount !== 1 ? "s" : ""} to review`}
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* ── Filters ── */}
         {!loading && totalCount > 0 && (
-          <div className="flex flex-wrap items-center gap-3 mb-8">
+          <div className="flex flex-wrap items-center gap-3 mb-8 animate-slide-up">
             <select
               value={filterType}
               onChange={e => { setFilterType(e.target.value); fetchWrongAnswers(e.target.value, filterPaper); }}
@@ -162,21 +213,28 @@ export default function WrongAnswersPage() {
 
         {/* ── Empty state ── */}
         {!loading && totalCount === 0 && (
-          <div className="card" style={{ padding: "4rem", textAlign: "center" }}>
+          <div className="card animate-fade-in" style={{ padding: "4rem 2rem", textAlign: "center" }}>
             <div style={{
-              width: "4rem", height: "4rem", borderRadius: "9999px",
-              background: "rgba(134,168,102,0.12)", display: "flex",
-              alignItems: "center", justifyContent: "center", margin: "0 auto 1.25rem",
+              width: "3rem", height: "3rem", borderRadius: "14px",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              margin: "0 auto 1.25rem",
+              background: "linear-gradient(135deg, rgba(134,168,102,0.22) 0%, rgba(74,110,48,0.12) 100%)",
+              boxShadow: "0 2px 10px rgba(134,168,102,0.14), inset 0 1px 0 rgba(255,255,255,0.5)",
             }}>
-              <svg width="28" height="28" fill="none" stroke="#4a6e30" strokeWidth="1.5"
-                strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                <path d="M5 13l4 4L19 7" />
-              </svg>
+              <span style={{ color: "#4a6e30" }}>
+                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={1.5}
+                  strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </span>
             </div>
-            <p className="font-display" style={{ fontSize: "1.25rem", fontWeight: 400, color: "var(--ink-700)", marginBottom: "0.375rem" }}>
+            <h2
+              className="font-display text-2xl font-light tracking-tight"
+              style={{ color: "var(--ink-700)", marginBottom: "0.5rem" }}
+            >
               All clear
-            </p>
-            <p className="text-sm" style={{ color: "var(--ink-300)", marginBottom: "1.5rem" }}>
+            </h2>
+            <p className="text-sm" style={{ color: "var(--ink-300)", marginBottom: "1.75rem" }}>
               No wrong answers to review — great job!
             </p>
             <Link href="/student/dashboard" className="btn-primary">
@@ -203,31 +261,33 @@ export default function WrongAnswersPage() {
 
         {/* ── Grouped by paper ── */}
         {!loading && totalCount > 0 && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "2.5rem" }}>
             {Object.entries(groupedByPaper).map(([paperTitle, items]) => (
               <section key={paperTitle}>
-                {/* Paper group header */}
-                <div className="flex items-center gap-2.5 mb-4">
+                {/* Paper group header — icon badge matching dashboard style */}
+                <div className="flex items-center gap-3 mb-5">
                   <div
-                    className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                    className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
                     style={{
-                      background: "linear-gradient(135deg, rgba(168,84,56,0.15) 0%, rgba(168,84,56,0.08) 100%)",
-                      boxShadow: "0 1px 4px rgba(168,84,56,0.10), inset 0 1px 0 rgba(255,255,255,0.4)",
+                      background: "linear-gradient(135deg, rgba(168,84,56,0.22) 0%, rgba(168,84,56,0.10) 100%)",
+                      boxShadow: "0 1px 4px rgba(168,84,56,0.12), inset 0 1px 0 rgba(255,255,255,0.45)",
                     }}
                   >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={1.5}
-                      strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"
-                      style={{ color: "var(--terracotta)" }}
-                    >
-                      <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
+                    <span style={{ color: "var(--terracotta)" }}>
+                      <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth={1.5}
+                        strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                        <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </span>
                   </div>
-                  <p className="text-sm font-medium" style={{ color: "var(--ink-700)" }}>
-                    {paperTitle}
-                  </p>
-                  <span className="text-xs" style={{ color: "var(--ink-300)" }}>
-                    {items.length} wrong
-                  </span>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium" style={{ color: "var(--ink-700)" }}>
+                      {paperTitle}
+                    </p>
+                    <p className="text-xs mt-0.5" style={{ color: "var(--ink-300)" }}>
+                      {items.length} wrong answer{items.length !== 1 ? "s" : ""}
+                    </p>
+                  </div>
                 </div>
 
                 {/* Question cards */}
@@ -239,18 +299,21 @@ export default function WrongAnswersPage() {
                         key={`${a.questionId}-${a.sessionId || i}`}
                         className="card animate-slide-up"
                         style={{
-                          padding: "1.25rem 1.375rem",
+                          padding: "1.375rem 1.5rem",
                           animationDelay: `${i * 35}ms`,
                           borderLeft: "3px solid var(--terracotta)",
                           borderRadius: "10px 14px 14px 10px",
                         }}
                       >
-                        {/* Top row: type badge + difficulty + score */}
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.75rem", flexWrap: "wrap" }}>
+                        {/* Top row: type badge + difficulty + category + score */}
+                        <div style={{
+                          display: "flex", alignItems: "center", gap: "0.5rem",
+                          marginBottom: "0.875rem", flexWrap: "wrap",
+                        }}>
                           <span style={{
                             fontSize: "0.625rem", fontWeight: 600, textTransform: "uppercase",
                             letterSpacing: "0.10em", fontFamily: "'DM Sans', sans-serif",
-                            padding: "0.15rem 0.5rem", borderRadius: "5px",
+                            padding: "0.2rem 0.55rem", borderRadius: "5px",
                             background: badge.bg, color: badge.color,
                             border: `1px solid ${badge.border}`,
                           }}>
@@ -272,41 +335,74 @@ export default function WrongAnswersPage() {
                         </div>
 
                         {/* Question content */}
-                        <p style={{ fontSize: "0.9375rem", color: "var(--ink-900)", marginBottom: "0.875rem", lineHeight: 1.5 }}>
+                        <p style={{
+                          fontSize: "0.9375rem", color: "var(--ink-900)",
+                          marginBottom: "0.875rem", lineHeight: 1.5,
+                        }}>
                           {a.questionContent}
                         </p>
 
-                        {/* Answer comparison */}
+                        {/* Your answer vs Correct answer — side by side with icons */}
                         <div style={{
-                          display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem",
-                          fontSize: "0.8125rem", background: "rgba(212,180,131,0.08)",
-                          borderRadius: "8px", padding: "0.75rem",
+                          display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.625rem",
+                          fontSize: "0.8125rem",
                         }}>
-                          <div>
-                            <span style={{ color: "var(--ink-300)" }}>Your answer: </span>
-                            <span style={{ fontWeight: 500, color: "var(--terracotta)" }}>
+                          <div style={{
+                            background: "rgba(168,84,56,0.06)",
+                            borderRadius: "10px", padding: "0.75rem 0.875rem",
+                            border: "1px solid rgba(168,84,56,0.15)",
+                          }}>
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <span style={{ color: "var(--terracotta)" }}><IconXCircle /></span>
+                              <span style={{ fontWeight: 600, fontSize: "0.6875rem", color: "var(--terracotta)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                                Your answer
+                              </span>
+                            </div>
+                            <span style={{ fontWeight: 500, color: "var(--terracotta)", paddingLeft: "0.25rem" }}>
                               {a.answerGiven || "(unanswered)"}
                             </span>
                           </div>
-                          <div>
-                            <span style={{ color: "var(--ink-300)" }}>Correct: </span>
-                            <span style={{ fontWeight: 500, color: "#4a6e30" }}>{a.correctAnswer}</span>
+                          <div style={{
+                            background: "rgba(134,168,102,0.06)",
+                            borderRadius: "10px", padding: "0.75rem 0.875rem",
+                            border: "1px solid rgba(134,168,102,0.18)",
+                          }}>
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={1.5}
+                                strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"
+                                style={{ color: "#4a6e30" }}
+                              >
+                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              <span style={{ fontWeight: 600, fontSize: "0.6875rem", color: "#4a6e30", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                                Correct
+                              </span>
+                            </div>
+                            <span style={{ fontWeight: 500, color: "#4a6e30", paddingLeft: "0.25rem" }}>
+                              {a.correctAnswer}
+                            </span>
                           </div>
                         </div>
 
-                        {/* Explanation */}
+                        {/* Explanation — collapsible with icon */}
                         {a.explanation && (
                           <details style={{ marginTop: "0.875rem" }}>
                             <summary style={{
                               fontSize: "0.8125rem", fontWeight: 500, color: "var(--amber-accent)",
                               cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
+                              display: "inline-flex", alignItems: "center", gap: "0.375rem",
                             }}>
+                              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={2}
+                                strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="M12 16v-4M12 8h.01" />
+                              </svg>
                               Explanation
                             </summary>
                             <p style={{
-                              fontSize: "0.8125rem", color: "var(--ink-500)", marginTop: "0.5rem",
-                              padding: "0.75rem", background: "rgba(181,115,42,0.06)",
-                              borderRadius: "8px", lineHeight: 1.6,
+                              fontSize: "0.8125rem", color: "var(--ink-500)", marginTop: "0.625rem",
+                              padding: "0.875rem 1rem", background: "rgba(181,115,42,0.05)",
+                              borderRadius: "10px", lineHeight: 1.6, border: "1px solid rgba(212,180,131,0.18)",
                             }}>
                               {a.explanation}
                             </p>
@@ -315,13 +411,14 @@ export default function WrongAnswersPage() {
 
                         {/* Link to full result */}
                         {a.sessionId && (
-                          <div style={{ marginTop: "0.75rem" }}>
+                          <div style={{ marginTop: "0.875rem" }}>
                             <Link
                               href={`/student/results/${a.sessionId}`}
-                              className="text-xs font-medium"
-                              style={{ color: "var(--amber-accent)" }}
+                              className="btn-ghost text-xs inline-flex items-center gap-1"
+                              style={{ color: "var(--amber-accent)", padding: "0.25rem 0.5rem" }}
                             >
-                              View full result →
+                              View full result
+                              <IconArrowRight />
                             </Link>
                           </div>
                         )}
