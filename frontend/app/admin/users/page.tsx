@@ -10,7 +10,10 @@ import NavBar from "@/components/NavBar";
 export default function AdminUsersPage() {
   const router = useRouter();
   const [user, setUser] = useState<{ fullName: string; role: string } | null>(null);
-  const [users, setUsers] = useState<{ id: number; username: string; email: string; fullName: string; role: string; enabled: boolean; createdAt: string }[]>([]);
+  const [users, setUsers] = useState<{
+    id: number; username: string; email: string;
+    fullName: string; role: string; enabled: boolean; createdAt: string;
+  }[]>([]);
 
   useEffect(() => {
     const token = getToken();
@@ -23,48 +26,89 @@ export default function AdminUsersPage() {
 
   if (!user) return null;
 
-  const roleStyle = (r: string) => {
-    if (r === "ADMIN") return "bg-red-50 text-red-700 border-red-200";
-    if (r === "TEACHER") return "bg-indigo-50 text-indigo-700 border-indigo-200";
-    return "bg-emerald-50 text-emerald-700 border-emerald-200";
+  const roleBadge = (r: string) => {
+    const map: Record<string, React.CSSProperties> = {
+      ADMIN:   { background: "rgba(168,84,56,0.10)", color: "var(--terracotta)", border: "1px solid rgba(168,84,56,0.22)" },
+      TEACHER: { background: "rgba(181,115,42,0.10)", color: "var(--amber-accent)", border: "1px solid rgba(181,115,42,0.25)" },
+      STUDENT: { background: "rgba(134,168,102,0.12)", color: "#4a6e30", border: "1px solid rgba(134,168,102,0.30)" },
+    };
+    return map[r] || map.STUDENT;
   };
 
   return (
     <>
       <NavBar fullName={user.fullName} role={user.role} />
-      <main className="p-8 max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
+      <main style={{ padding: "2.5rem 2rem", maxWidth: "72rem", margin: "0 auto" }} className="animate-fade-in">
+
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "2.5rem" }}>
           <div>
-            <h1 className="text-2xl font-bold text-slate-800 tracking-tight">User Management</h1>
-            <p className="text-slate-500 text-sm mt-1">{users.length} users</p>
+            <h1 className="page-heading">User Management</h1>
+            <p className="page-subheading">{users.length} users registered</p>
           </div>
-          <Link href="/admin/dashboard" className="text-sm font-medium text-indigo-600 hover:text-indigo-500 transition-colors">Dashboard</Link>
+          <Link href="/admin/dashboard" style={{ fontSize: "0.875rem", fontWeight: 500, color: "var(--amber-accent)", textDecoration: "none" }}>
+            Dashboard
+          </Link>
         </div>
 
-        <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden">
-          <table className="w-full">
+        <div className="card" style={{ overflow: "hidden", padding: 0 }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
-              <tr className="border-b border-slate-100">
-                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">User</th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Email</th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Role</th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Status</th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Joined</th>
+              <tr style={{ borderBottom: "1px solid rgba(212,180,131,0.25)" }}>
+                {["User", "Email", "Role", "Status", "Joined"].map(h => (
+                  <th key={h} style={{
+                    textAlign: "left", padding: "0.875rem 1.25rem",
+                    fontSize: "0.6875rem", fontWeight: 600,
+                    textTransform: "uppercase", letterSpacing: "0.12em",
+                    color: "var(--ink-300)", fontFamily: "'DM Sans', sans-serif",
+                  }}>
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
-              {users.map(u => (
-                <tr key={u.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                  <td className="px-5 py-3.5 text-sm font-medium text-slate-800">{u.fullName}</td>
-                  <td className="px-5 py-3.5 text-sm text-slate-500">{u.email}</td>
-                  <td className="px-5 py-3.5"><span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${roleStyle(u.role)}`}>{u.role}</span></td>
-                  <td className="px-5 py-3.5 text-sm"><span className={u.enabled ? "text-emerald-600" : "text-red-500"}>{u.enabled ? "Active" : "Disabled"}</span></td>
-                  <td className="px-5 py-3.5 text-sm text-slate-400">{String(u.createdAt).split("T")[0]}</td>
+              {users.map((u, i) => (
+                <tr
+                  key={u.id}
+                  style={{
+                    borderBottom: i < users.length - 1 ? "1px solid rgba(212,180,131,0.15)" : "none",
+                    transition: "background 0.12s ease",
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.background = "rgba(212,180,131,0.07)")}
+                  onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                >
+                  <td style={{ padding: "0.875rem 1.25rem" }}>
+                    <span className="font-display" style={{ fontSize: "1rem", fontWeight: 400, color: "var(--ink-900)" }}>
+                      {u.fullName}
+                    </span>
+                  </td>
+                  <td style={{ padding: "0.875rem 1.25rem", fontSize: "0.875rem", color: "var(--ink-500)" }}>{u.email}</td>
+                  <td style={{ padding: "0.875rem 1.25rem" }}>
+                    <span style={{
+                      fontSize: "0.75rem", fontWeight: 600, padding: "0.2rem 0.625rem",
+                      borderRadius: "9999px", fontFamily: "'DM Sans', sans-serif",
+                      ...roleBadge(u.role),
+                    }}>
+                      {u.role.charAt(0) + u.role.slice(1).toLowerCase()}
+                    </span>
+                  </td>
+                  <td style={{ padding: "0.875rem 1.25rem" }}>
+                    <span style={{
+                      fontSize: "0.8125rem", fontWeight: 500,
+                      color: u.enabled ? "#4a6e30" : "var(--terracotta)",
+                    }}>
+                      {u.enabled ? "Active" : "Disabled"}
+                    </span>
+                  </td>
+                  <td style={{ padding: "0.875rem 1.25rem", fontSize: "0.8125rem", color: "var(--ink-300)" }}>
+                    {String(u.createdAt).split("T")[0]}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+
       </main>
     </>
   );

@@ -21,15 +21,19 @@ export default function AdminDashboard() {
     api.get("/api/admin/stats").then(r => setStats(r.data.data));
   }, [router]);
 
-  if (!user || !stats) return <div className="min-h-screen flex items-center justify-center text-slate-400">Loading...</div>;
+  if (!user || !stats) return (
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink-300)" }}>
+      Loading…
+    </div>
+  );
 
   const cards = [
-    { label: "Total Users", value: stats.totalUsers, href: "/admin/users", gradient: "from-indigo-500 to-blue-600" },
-    { label: "Teachers", value: stats.totalTeachers, href: "/admin/users", gradient: "from-emerald-500 to-teal-600" },
-    { label: "Students", value: stats.totalStudents, href: "/admin/users", gradient: "from-violet-500 to-purple-600" },
-    { label: "Exam Papers", value: stats.totalPapers, gradient: "from-amber-500 to-orange-600" },
-    { label: "Exams Taken", value: stats.totalSessions, gradient: "from-rose-500 to-pink-600" },
-    { label: "Avg Score", value: stats.systemAvgScore, gradient: "from-cyan-500 to-sky-600" },
+    { label: "Total Users",  value: stats.totalUsers,    href: "/admin/users" },
+    { label: "Teachers",     value: stats.totalTeachers, href: "/admin/users" },
+    { label: "Students",     value: stats.totalStudents, href: "/admin/users" },
+    { label: "Exam Papers",  value: stats.totalPapers,   href: null },
+    { label: "Exams Taken",  value: stats.totalSessions, href: null },
+    { label: "Avg Score",    value: stats.systemAvgScore,href: null },
   ];
 
   const passRate = Math.round(Number(stats.passRate || 0) * 100);
@@ -37,48 +41,65 @@ export default function AdminDashboard() {
   return (
     <>
       <NavBar fullName={user.fullName} role={user.role} />
-      <main className="p-8 max-w-6xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Dashboard</h1>
-          <p className="text-slate-500 text-sm mt-1">System overview and management</p>
+      <main style={{ padding: "2.5rem 2rem", maxWidth: "72rem", margin: "0 auto" }} className="animate-fade-in">
+
+        <div style={{ marginBottom: "2.5rem" }}>
+          <h1 className="page-heading">Dashboard</h1>
+          <p className="page-subheading">System overview and management</p>
         </div>
 
-        <div className="grid grid-cols-3 gap-5 mb-8">
-          {cards.map(c => (
-            <Link
-              key={c.label}
-              href={c.href || "#"}
-              className="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-md transition-all p-5"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{c.label}</p>
-                <div className={`w-2.5 h-2.5 rounded-full bg-gradient-to-br ${c.gradient}`} />
+        {/* Stat cards */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1.25rem", marginBottom: "2rem" }}>
+          {cards.map((c, i) => {
+            const inner = (
+              <div className="card animate-slide-up" style={{ padding: "1.5rem", animationDelay: `${i * 55}ms` }}>
+                <p className="section-label" style={{ marginBottom: "0.875rem" }}>{c.label}</p>
+                <p className="font-display" style={{ fontSize: "2.5rem", fontWeight: 300, color: "var(--ink-900)", lineHeight: 1 }}>
+                  {String(c.value ?? "—")}
+                </p>
               </div>
-              <p className="text-3xl font-bold text-slate-800 tracking-tight">{String(c.value)}</p>
-            </Link>
-          ))}
+            );
+            return c.href
+              ? <Link key={c.label} href={c.href} style={{ textDecoration: "none" }}>{inner}</Link>
+              : <div key={c.label}>{inner}</div>;
+          })}
         </div>
 
-        <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-sm p-6 mb-8">
-          <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Overall Pass Rate</h2>
-          <div className="flex items-center gap-4">
-            <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
-              <div className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-600 transition-all duration-700" style={{ width: `${passRate}%` }} />
-            </div>
-            <span className="text-sm font-bold text-slate-600 tabular-nums w-12 text-right">{passRate}%</span>
+        {/* Pass rate */}
+        <div className="card" style={{ padding: "1.5rem", marginBottom: "2rem" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
+            <p className="section-label">Overall Pass Rate</p>
+            <span className="font-display" style={{ fontSize: "1.5rem", fontWeight: 300, color: "var(--ink-900)" }}>
+              {passRate}%
+            </span>
+          </div>
+          <div style={{ height: "6px", background: "rgba(212,180,131,0.25)", borderRadius: "9999px", overflow: "hidden" }}>
+            <div style={{
+              height: "100%",
+              width: `${passRate}%`,
+              borderRadius: "9999px",
+              background: "linear-gradient(90deg, var(--parchment-400), var(--amber-accent))",
+              transition: "width 0.8s cubic-bezier(0.16,1,0.3,1)",
+            }} />
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-5">
-          <Link href="/admin/users" className="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-md transition-all p-5 group">
-            <h3 className="font-semibold text-slate-700 group-hover:text-indigo-600 transition-colors">User Management</h3>
-            <p className="text-sm text-slate-400 mt-1">View and manage all system users</p>
+        {/* Quick links */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem" }}>
+          <Link href="/admin/users" className="card animate-slide-up" style={{ padding: "1.5rem", textDecoration: "none", animationDelay: "330ms" }}>
+            <h3 className="font-display" style={{ fontSize: "1.25rem", fontWeight: 400, color: "var(--ink-900)", marginBottom: "0.375rem" }}>
+              User Management
+            </h3>
+            <p style={{ fontSize: "0.875rem", color: "var(--ink-300)" }}>View and manage all system users</p>
           </Link>
-          <div className="bg-white/40 rounded-2xl border border-slate-200/40 p-5 opacity-60">
-            <h3 className="font-semibold text-slate-700">System Settings</h3>
-            <p className="text-sm text-slate-400 mt-1">Coming soon</p>
+          <div className="card" style={{ padding: "1.5rem", opacity: 0.5 }}>
+            <h3 className="font-display" style={{ fontSize: "1.25rem", fontWeight: 400, color: "var(--ink-900)", marginBottom: "0.375rem" }}>
+              System Settings
+            </h3>
+            <p style={{ fontSize: "0.875rem", color: "var(--ink-300)" }}>Coming soon</p>
           </div>
         </div>
+
       </main>
     </>
   );

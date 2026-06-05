@@ -29,35 +29,56 @@ export default function NavBar({ fullName, role }: { fullName: string; role: str
     router.push("/login");
   }
 
-  const roleColors: Record<string, string> = {
-    ADMIN: "bg-red-50 text-red-700 border-red-200",
-    TEACHER: "bg-indigo-50 text-indigo-700 border-indigo-200",
-    STUDENT: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  };
-
   const links = navLinks[role] || [];
 
   return (
-    <nav className="sticky top-0 z-40 bg-white/80 backdrop-blur-lg border-b border-slate-200/60 px-6 py-3 flex items-center justify-between">
+    <nav
+      className="sticky top-0 z-40 px-6 py-3 flex items-center justify-between"
+      style={{
+        background: "rgba(249, 242, 227, 0.88)",
+        backdropFilter: "blur(16px)",
+        borderBottom: "1px solid rgba(212, 180, 131, 0.35)",
+        boxShadow: "0 1px 12px rgba(28, 22, 18, 0.05)",
+      }}
+    >
       <div className="flex items-center gap-5">
-        <Link href={`/${role.toLowerCase()}/dashboard`} className="text-lg font-bold text-slate-800 tracking-tight hover:text-indigo-600 transition-colors">
+        <Link
+          href={`/${role.toLowerCase()}/dashboard`}
+          className="font-display text-xl font-light tracking-tight transition-colors"
+          style={{ color: "var(--ink-900)" }}
+        >
           ExamFlow
         </Link>
-        <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${roleColors[role] || "bg-slate-50 text-slate-600 border-slate-200"}`}>
+
+        <span className="badge-role">
           {role.charAt(0) + role.slice(1).toLowerCase()}
         </span>
-        <div className="flex items-center gap-1 ml-2">
+
+        <div className="flex items-center gap-0.5 ml-1">
           {links.map(l => (
-            <Link key={l.href} href={l.href} className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors">
+            <Link
+              key={l.href}
+              href={l.href}
+              className="btn-ghost text-xs"
+            >
               {l.label}
             </Link>
           ))}
         </div>
       </div>
+
       <div className="flex items-center gap-4">
-        <span className="text-sm font-medium text-slate-600">{fullName}</span>
-        <div className="w-px h-5 bg-slate-200" />
-        <button onClick={handleLogout} className="text-sm text-slate-400 hover:text-red-500 font-medium transition-colors">
+        <span className="text-sm font-medium" style={{ color: "var(--ink-500)" }}>
+          {fullName}
+        </span>
+        <div className="w-px h-4" style={{ background: "var(--ink-100)" }} />
+        <button
+          onClick={handleLogout}
+          className="text-sm font-medium transition-colors"
+          style={{ color: "var(--ink-300)" }}
+          onMouseEnter={e => (e.currentTarget.style.color = "var(--terracotta)")}
+          onMouseLeave={e => (e.currentTarget.style.color = "var(--ink-300)")}
+        >
           Sign out
         </button>
       </div>

@@ -48,8 +48,11 @@ export function useAuth() {
     const { token, role, fullName } = res.data.data;
     setToken(token);
     setUser({ email, fullName, role });
-    router.push(getRedirectPath(role));
-  }, [router]);
+    // Use window.location.href instead of router.push to force a full page reload.
+    // This ensures the cookie set above is sent in the HTTP request headers so that
+    // the Next.js middleware can read it and allow access to protected routes.
+    window.location.href = getRedirectPath(role);
+  }, []);
 
   const logout = useCallback(() => {
     clearToken();

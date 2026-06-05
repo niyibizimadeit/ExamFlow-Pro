@@ -10,8 +10,14 @@ import NavBar from "@/components/NavBar";
 export default function StudentDashboard() {
   const router = useRouter();
   const [user, setUser] = useState<{ fullName: string; role: string } | null>(null);
-  const [papers, setPapers] = useState<{ id: number; title: string; durationMins: number; totalScore: number; status: string; questionCount: number }[]>([]);
-  const [scores, setScores] = useState<{ id: number; sessionId: number; paperId: number; paperTitle: string; totalScore: number; paperTotalScore: number; passed: boolean }[]>([]);
+  const [papers, setPapers] = useState<{
+    id: number; title: string; durationMins: number;
+    totalScore: number; status: string; questionCount: number;
+  }[]>([]);
+  const [scores, setScores] = useState<{
+    id: number; sessionId: number; paperId: number; paperTitle: string;
+    totalScore: number; paperTotalScore: number; passed: boolean;
+  }[]>([]);
 
   useEffect(() => {
     const token = getToken();
@@ -35,52 +41,113 @@ export default function StudentDashboard() {
   return (
     <>
       <NavBar fullName={user.fullName} role={user.role} />
-      <main className="p-8 max-w-4xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Student Portal</h1>
-          <p className="text-slate-500 text-sm mt-1">Available exams and your results</p>
+
+      <main className="px-6 py-10 max-w-3xl mx-auto animate-fade-in">
+
+        {/* Page header */}
+        <div className="mb-10">
+          <h1 className="page-heading">Student Portal</h1>
+          <p className="page-subheading">Available exams and your results</p>
         </div>
 
-        <section className="mb-10">
-          <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Available Exams</h2>
+        {/* Available exams */}
+        <section className="mb-12">
+          <p className="section-label mb-5">Available Exams</p>
+
           <div className="space-y-3">
-            {available.map(p => (
-              <div key={p.id} className="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-sm p-5 flex items-center justify-between">
+            {available.map((p, i) => (
+              <div
+                key={p.id}
+                className="card p-5 flex items-center justify-between animate-slide-up"
+                style={{ animationDelay: `${i * 60}ms` }}
+              >
                 <div>
-                  <h3 className="font-semibold text-slate-800">{p.title}</h3>
-                  <p className="text-sm text-slate-400 mt-0.5">{p.durationMins} min &middot; {p.questionCount} questions &middot; {p.totalScore} pts</p>
+                  <h3
+                    className="font-display text-xl font-light"
+                    style={{ color: "var(--ink-900)" }}
+                  >
+                    {p.title}
+                  </h3>
+                  <p className="text-xs mt-1" style={{ color: "var(--ink-300)" }}>
+                    {p.durationMins} min &middot; {p.questionCount} questions &middot; {p.totalScore} pts
+                  </p>
                 </div>
-                <Link href={`/student/exam/${p.id}`} className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 shadow-lg shadow-indigo-200 transition-all">Begin Exam</Link>
+                <Link href={`/student/exam/${p.id}`} className="btn-primary">
+                  Begin Exam
+                </Link>
               </div>
             ))}
+
             {available.length === 0 && (
-              <div className="bg-white/50 rounded-2xl border border-slate-100 p-10 text-center text-slate-400 text-sm">No exams available</div>
+              <div
+                className="card p-10 text-center animate-fade-in"
+                style={{ color: "var(--ink-300)" }}
+              >
+                <svg className="w-8 h-8 mx-auto mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <p className="text-sm">No exams available right now</p>
+              </div>
             )}
           </div>
         </section>
 
+        <hr className="divider" />
+
+        {/* Results */}
         <section>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Your Results</h2>
-            <Link href="/student/wrong-answers" className="text-xs font-medium text-indigo-600 hover:text-indigo-500 transition-colors">Wrong Answer Notebook</Link>
+          <div className="flex items-center justify-between mb-5">
+            <p className="section-label">Your Results</p>
+            <Link
+              href="/student/wrong-answers"
+              className="text-xs font-medium transition-colors"
+              style={{ color: "var(--amber-accent)" }}
+            >
+              Wrong Answer Notebook
+            </Link>
           </div>
+
           <div className="space-y-2">
-            {scores.map(s => (
-              <Link key={s.id} href={`/student/results/${s.id}`} className="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-md transition-all p-4 flex items-center justify-between group">
+            {scores.map((s, i) => (
+              <Link
+                key={s.id}
+                href={`/student/results/${s.id}`}
+                className="card p-4 flex items-center justify-between group block animate-slide-up"
+                style={{ animationDelay: `${i * 50}ms` }}
+              >
                 <div>
-                  <h3 className="font-semibold text-slate-800 group-hover:text-indigo-600 transition-colors">{s.paperTitle}</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">{s.totalScore} / {s.paperTotalScore} points</p>
+                  <h3
+                    className="font-display text-lg font-light transition-colors"
+                    style={{ color: "var(--ink-900)" }}
+                  >
+                    {s.paperTitle}
+                  </h3>
+                  <p className="text-xs mt-0.5" style={{ color: "var(--ink-300)" }}>
+                    {s.totalScore} / {s.paperTotalScore} points
+                  </p>
                 </div>
-                <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${s.passed ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-red-50 text-red-700 border-red-200"}`}>
+                <span className={s.passed ? "badge-pass" : "badge-fail"}>
                   {s.passed ? "Passed" : "Failed"}
                 </span>
               </Link>
             ))}
+
             {scores.length === 0 && (
-              <div className="bg-white/50 rounded-2xl border border-slate-100 p-10 text-center text-slate-400 text-sm">No completed exams</div>
+              <div
+                className="card p-10 text-center animate-fade-in"
+                style={{ color: "var(--ink-300)" }}
+              >
+                <svg className="w-8 h-8 mx-auto mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                <p className="text-sm">No completed exams yet</p>
+              </div>
             )}
           </div>
         </section>
+
       </main>
     </>
   );
