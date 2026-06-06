@@ -93,8 +93,27 @@ export default function TeacherQuestionsPage() {
               </p>
             </div>
             <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.5rem", flexShrink: 0 }}>
-              <Link href="/teacher/questions/categories" className="btn-ghost" style={{ fontSize: "0.9rem" }}>Categories</Link>
-              <Link href="/teacher/questions/new" className="btn-primary" style={{ fontSize: "0.9rem" }}>New Question</Link>
+              <Link href="/teacher/questions/categories" style={{
+                display: "inline-flex", alignItems: "center", padding: "0.625rem 1.25rem",
+                borderRadius: "10px", fontSize: "0.9375rem", fontWeight: 500,
+                fontFamily: "'DM Sans', sans-serif", color: "var(--ink-500)",
+                background: "transparent", border: "1.5px solid rgba(212,180,131,0.45)",
+                textDecoration: "none", transition: "all 0.12s ease",
+              }}
+                onMouseEnter={e => { e.currentTarget.style.background = "rgba(212,180,131,0.15)"; e.currentTarget.style.color = "var(--ink-700)"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--ink-500)"; }}
+              >Categories</Link>
+              <Link href="/teacher/questions/new" style={{
+                display: "inline-flex", alignItems: "center", padding: "0.625rem 1.25rem",
+                borderRadius: "10px", fontSize: "0.9375rem", fontWeight: 500,
+                fontFamily: "'DM Sans', sans-serif", color: "#fdf8f0",
+                background: "linear-gradient(135deg, var(--amber-accent) 0%, #7a3318 100%)",
+                boxShadow: "0 2px 10px rgba(181,115,42,0.28), inset 0 1px 0 rgba(255,255,255,0.15)",
+                textDecoration: "none", transition: "all 0.15s ease",
+              }}
+                onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 4px 16px rgba(181,115,42,0.36)"; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 2px 10px rgba(181,115,42,0.28)"; }}
+              >New Question</Link>
             </div>
           </div>
         </header>

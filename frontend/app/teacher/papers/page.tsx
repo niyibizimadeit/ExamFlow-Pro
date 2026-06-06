@@ -49,7 +49,18 @@ export default function PapersPage() {
                 {papers.length} paper{papers.length !== 1 ? "s" : ""}
               </p>
             </div>
-            <Link href="/teacher/papers/new" className="btn-primary" style={{ fontSize: "0.9rem", flexShrink: 0, marginTop: "0.5rem" }}>
+            <Link href="/teacher/papers/new" style={{
+              display: "inline-flex", alignItems: "center", padding: "0.625rem 1.25rem",
+              borderRadius: "10px", fontSize: "0.9375rem", fontWeight: 500,
+              fontFamily: "'DM Sans', sans-serif", color: "#fdf8f0",
+              background: "linear-gradient(135deg, var(--amber-accent) 0%, #7a3318 100%)",
+              boxShadow: "0 2px 10px rgba(181,115,42,0.28), inset 0 1px 0 rgba(255,255,255,0.15)",
+              textDecoration: "none", flexShrink: 0, marginTop: "0.5rem",
+              transition: "all 0.15s ease",
+            }}
+              onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 4px 16px rgba(181,115,42,0.36)"; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 2px 10px rgba(181,115,42,0.28)"; }}
+            >
               Create Paper
             </Link>
           </div>
@@ -92,10 +103,25 @@ export default function PapersPage() {
                 </div>
                 <div style={{ display: "flex", gap: "0.625rem", flexShrink: 0 }}>
                   {p.status === "DRAFT" && (
-                    <Link href={`/teacher/papers/${p.id}/build`} className="btn-primary" style={{ fontSize: "0.875rem" }}>Build</Link>
+                    <Link href={`/teacher/papers/${p.id}/build`} style={{
+                      display: "inline-flex", alignItems: "center", padding: "0.5rem 1.125rem",
+                      borderRadius: "9px", fontSize: "0.875rem", fontWeight: 500,
+                      fontFamily: "'DM Sans', sans-serif", color: "#fdf8f0",
+                      background: "linear-gradient(135deg, var(--amber-accent) 0%, #7a3318 100%)",
+                      boxShadow: "0 2px 8px rgba(181,115,42,0.25)", textDecoration: "none",
+                    }}>Build</Link>
                   )}
                   {p.status !== "DRAFT" && (
-                    <Link href={`/teacher/papers/${p.id}/results`} className="btn-ghost" style={{ fontSize: "0.875rem" }}>Results</Link>
+                    <Link href={`/teacher/papers/${p.id}/results`} style={{
+                      display: "inline-flex", alignItems: "center", padding: "0.5rem 1.125rem",
+                      borderRadius: "9px", fontSize: "0.875rem", fontWeight: 500,
+                      fontFamily: "'DM Sans', sans-serif", color: "var(--ink-500)",
+                      background: "transparent", border: "1.5px solid rgba(212,180,131,0.45)",
+                      textDecoration: "none", transition: "all 0.12s ease",
+                    }}
+                      onMouseEnter={e => { e.currentTarget.style.background = "rgba(212,180,131,0.15)"; e.currentTarget.style.color = "var(--ink-700)"; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--ink-500)"; }}
+                    >Results</Link>
                   )}
                 </div>
               </div>
