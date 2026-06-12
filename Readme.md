@@ -176,15 +176,14 @@ examflow-pro/
 ```bash
 cd backend
 # Configure application.yml with your MySQL credentials
-mvn spring-boot:run
+mvn spring-boot:run #java springbot
 # API runs at http://localhost:8080
 ```
 
 ### Frontend
 ```bash
 cd frontend
-npm install
-npm run dev
+npm run dev   #vuejs
 # App runs at http://localhost:3000
 ```
 

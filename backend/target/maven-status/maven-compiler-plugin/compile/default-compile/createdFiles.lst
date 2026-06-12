@@ -1,3 +1,4 @@
+com/examflow/backend/config/DataInitializer.class
 com/examflow/backend/dto/QuestionResponseDto.class
 com/examflow/backend/dto/QuestionResponseDto$OptionResp.class
 com/examflow/backend/repository/CategoryRepository.class

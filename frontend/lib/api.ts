@@ -17,13 +17,17 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// On 401 → clear token and redirect to login
+// On 401 → clear token and redirect to login (skip redirect if already on /login)
 api.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
       clearToken();
-      window.location.href = "/login";
+      // Don't redirect if we're already on /login — the login page handles
+      // the error display itself; redirecting would reload and lose the message.
+      if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+        window.location.href = "/login";
+      }
     }
     return Promise.reject(err);
   }

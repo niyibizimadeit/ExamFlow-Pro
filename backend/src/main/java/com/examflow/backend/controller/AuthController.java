@@ -7,6 +7,8 @@ import com.examflow.backend.exception.BusinessException;
 import com.examflow.backend.repository.UserRepository;
 import com.examflow.backend.security.JwtUtils;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -15,6 +17,8 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -33,7 +37,14 @@ public class AuthController {
         User user = userRepository.findByEmail(req.getEmail())
                 .orElse(null);
 
-        if (user == null || !passwordEncoder.matches(req.getPassword(), user.getPassword())) {
+        if (user == null) {
+            log.warn("Login failed: no user found for email {}", req.getEmail());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.error("Invalid email or password"));
+        }
+
+        if (!passwordEncoder.matches(req.getPassword(), user.getPassword())) {
+            log.warn("Login failed: wrong password for email {}", req.getEmail());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(ApiResponse.error("Invalid email or password"));
         }
